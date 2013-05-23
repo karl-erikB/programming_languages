@@ -39,7 +39,7 @@ System.in.eachLine() { line, nr ->
         case ~/set\(.*\)/: println('set'); break
         default: println "Illegal statement on line $nr: $line"; break
         }
-    } catch (Exception e) {
+    } catch (GrashException e) {
         println "Error on line $nr: $e"
     }
 }
