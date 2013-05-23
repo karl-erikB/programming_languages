@@ -62,35 +62,26 @@ class Interpreter {
     }
     
     private def seq(command, args) {
+        runUntil command, args, { it != 0 }
+    }
+    
+    private def alt(command, args) {
+        runUntil command, args, {it == 0 }
+    }
+
+    private def runUntil(command, args, shouldStop) {
         final actions = []
         extractActions(command, actions)
 
         if (actions.size() == 0) {
-            throw new IllegalSyntaxException("Empty sequence")
+            throw new IllegalSyntaxException("Empty action")
         }
 
         /* Loops until an execution returns != 0. */
         def exitCode = 0
         actions.find {
             exitCode = run(it, args)
-            return exitCode != 0
-        }
-        
-        return exitCode
-    }
-    
-    private def alt(command, args) {
-        final actions = []
-        extractActions(command, actions)
-
-        if (actions.size() == 0) {
-            throw new IllegalSyntaxException("Empty alternative")
-        }
-
-        def exitCode = 0
-        actions.find {
-            exitCode = run(it, args)
-            return exitCode == 0
+            return shouldStop(exitCode)
         }
         
         return exitCode
