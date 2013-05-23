@@ -90,7 +90,6 @@ class Interpreter {
             throw new IllegalSyntaxException("Empty alternative")
         }
 
-        /* Loops until an execution returns != 0. */
         def exitCode = 0
         actions.find {
             exitCode = run(it, args)
@@ -101,7 +100,34 @@ class Interpreter {
     }
     
     private def set(command, args) {
+        final matcher = (command =~ /($SYM)[ ]*<-[ ]*($SYM)[ ]*:[ ]*($ACTION)/)
+
+        if (!matcher) {
+            throw new IllegalSyntaxException("Invalid syntax in set: $command")
+        }
+
+        final boundSym = matcher[0][1]
+        final setSym = matcher [0][2]
+        final c = matcher[0][3]
+
+        final setVal = symbols.getSymbol setSym
+
+        final actions = []
+        extractActions(c, actions)
+
+        if (actions.size() != 1) {
+            throw new IllegalSyntaxException("Set does not contain exactly one action")
+        }
+
+        def exitCode = 0
+        setVal.split().find {
+            symbols.addDefinition boundSym, it
+
+            exitCode = run(actions[0], args)
+            return exitCode != 0
+        }
         
+        return exitCode
     }
     
     private def cmd(command, args) {
