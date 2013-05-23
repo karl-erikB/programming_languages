@@ -46,7 +46,7 @@ System.in.eachLine() { line, nr ->
             symbols.addDefinition Matcher.lastMatcher[0][1],
                                   Matcher.lastMatcher[0][2]
             break
-        case ~/(prm|seq|alt|set)\(.+\)/:
+        case ~ACTION:
             final interpreter = new Interpreter(symbols)
             interpreter.run line
             break
