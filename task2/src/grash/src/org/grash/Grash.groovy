@@ -3,6 +3,8 @@ package org.grash
 import groovy.io.FileType
 import java.util.regex.Matcher
 
+import static Tokens.*
+
 final symbols = new Symbols()
 
 args.each() { arg ->
@@ -11,26 +13,20 @@ args.each() { arg ->
     symbols.addForwardDefinition pair[0], pair[1]
 }
 
-final rwhite = '[ ]+'
-final rsym = '[a-zA-Z0-9]+'
-final rregexp = '[^:]+'
-final rval = '[^:]+'
-final rpath = '[^:]+'
-
 System.in.eachLine() { line, nr ->
     try {
         switch (line) {
-        case ~/par$rwhite($rsym)/:
+        case ~/par$WHITE($SYM)/:
             symbols.addDeclaration Matcher.lastMatcher[0][1]
             break
-        case ~/defp$rwhite($rsym)$rwhite($rsym):($rregexp):($rval)/:
+        case ~/defp$WHITE($SYM)$WHITE($SYM):($REGEXP):($VAL)/:
             final sym = Matcher.lastMatcher[0][1]
             final val = symbols.getSymbol Matcher.lastMatcher[0][2]
             final pattern = Matcher.lastMatcher[0][3]
             final replace = Matcher.lastMatcher[0][4]
             symbols.addDefinition sym, (val =~ pattern).replaceAll(replace)
             break
-        case ~/deff$rwhite($rsym)$rwhite($rpath):($rregexp)/:
+        case ~/deff$WHITE($SYM)$WHITE($PATH):($REGEXP)/:
             final sym = Matcher.lastMatcher[0][1]
             final path = Matcher.lastMatcher[0][2]
             final pattern = Matcher.lastMatcher[0][3]
@@ -46,7 +42,7 @@ System.in.eachLine() { line, nr ->
 
             symbols.addDefinition sym, files.join(" ")
             break
-        case ~/def$rwhite($rsym)$rwhite($rval)/:
+        case ~/def$WHITE($SYM)$WHITE($VAL)/:
             symbols.addDefinition Matcher.lastMatcher[0][1],
                                   Matcher.lastMatcher[0][2]
             break
