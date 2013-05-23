@@ -100,7 +100,7 @@ class Interpreter {
     }
     
     private def set(command, args) {
-        final matcher = (command =~ /($SYM)[ ]*<-[ ]*($SYM)[ ]*:[ ]*($ACTION)/)
+        final matcher = (command =~ /($SYM)$WHITE_<-$WHITE_($SYM)$WHITE_:$WHITE_($ACTION)/)
 
         if (!matcher) {
             throw new IllegalSyntaxException("Invalid syntax in set: $command")
@@ -152,7 +152,7 @@ class Interpreter {
         while (i < command.size()) {
             final c = command[i..command.size() - 1]
 
-            if (!(c =~ /^[ ]*$ACTION/)) {
+            if (!(c =~ /^$WHITE_$ACTION/)) {
                 return c
             }
 

@@ -3,6 +3,7 @@ package org.grash
 class Tokens {
 
     static final WHITE = '[ ]+'
+    static final WHITE_ = '[ ]*'
     static final SYM = '[a-zA-Z0-9]+'
     static final REGEXP = '[^:]+'
     static final VAL = '[^:]+'

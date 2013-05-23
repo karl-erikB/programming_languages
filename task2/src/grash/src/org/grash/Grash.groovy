@@ -51,6 +51,7 @@ System.in.eachLine() { line, nr ->
             final interpreter = new Interpreter(symbols)
             exitCode = interpreter.run line, []
             break
+        case ~WHITE_: break
         default: println "Illegal statement on line $nr: $line"; break
         }
     } catch (GrashException e) {
