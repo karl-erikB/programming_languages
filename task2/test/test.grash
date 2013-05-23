@@ -1,0 +1,29 @@
+par tests
+par grashopts
+par grashopt
+par groovyopt
+par one
+par two
+par equals
+
+def one 1
+def two 2
+def equals ==
+def groovyopt org/grash/Grash.groovy
+
+# We now need to construct the individual arguments for each test execution.
+# This is somewhat complicated, because grash expects the input
+# either from stdin (which we can't do), or passed as an argument
+# of the form '-i:path'. We can't do string concatenation,
+# we can't use capture groups, and we can't define variables within an operation,
+# so we need to use some tricks.
+
+deff tests ../../../test:[0-9][0-9].grash
+defp grashopts tests:[ ]: -i:../../../test/
+defp grashopts grashopts:^:-i:../../../test/
+
+# This might need some explaining. All it actually does it execute each
+# test script found in test/. The alt(seq(prm() false) true) construct
+# only ensures that each test is executed, even if it returns an exit code != 0.
+
+set(grashopt <- grashopts: alt(seq(prm(groovy groovyopt grashopt) prm(test one equals two)) prm(test one equals one)))
