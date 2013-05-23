@@ -1,5 +1,6 @@
 package org.grash
 
+import groovy.io.FileType
 import java.util.regex.Matcher
 
 final symbols = new Symbols()
@@ -14,6 +15,7 @@ final rwhite = '[ ]+'
 final rsym = '[a-zA-Z0-9]+'
 final rregexp = '[^:]+'
 final rval = '[^:]+'
+final rpath = '[^:]+'
 
 System.in.eachLine() { line, nr ->
     try {
@@ -28,7 +30,22 @@ System.in.eachLine() { line, nr ->
             final replace = Matcher.lastMatcher[0][4]
             symbols.addDefinition sym, (val =~ pattern).replaceAll(replace)
             break
-        case ~/deff.*/: println 'deff'; break
+        case ~/deff$rwhite($rsym)$rwhite($rpath):($rregexp)/:
+            final sym = Matcher.lastMatcher[0][1]
+            final path = Matcher.lastMatcher[0][2]
+            final pattern = Matcher.lastMatcher[0][3]
+
+            def files = []
+            final dir = new File(path)
+            dir.eachFile(FileType.FILES) { file ->
+                final name = file.getName()
+                if (name =~ pattern) {
+                    files << name
+                }
+            }
+
+            symbols.addDefinition sym, files.join(" ")
+            break
         case ~/def$rwhite($rsym)$rwhite($rval)/:
             symbols.addDefinition Matcher.lastMatcher[0][1],
                                   Matcher.lastMatcher[0][2]
