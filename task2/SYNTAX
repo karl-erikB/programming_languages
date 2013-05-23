@@ -7,21 +7,22 @@ par p2, p3, p4
 Definitions
 -----------
 
-p1 := astring                       /* Simple */
-p2 := several strins                /* Set parameter */
-p3 #= source, regexp, replacement   /* Parameter copy / replace */
-p4 %= regexp                        /* File matching */
+def  p1 astring                       /* Simple */
+def  p2 several strings               /* Set parameter */
+defp p3 source, regexp, replacement   /* Parameter copy / replace */
+deff p4 regexp                        /* File matching */
 
-grash p1:astring p2:"several strings" < script.g /* Definition at invocation */
+grash p1:astring p2:"several strings" /* Definition at invocation */
 
 Actions
 -------
 
-Action      := Cmd | Primitive | Sequence | Alternative | Set
-Primitive   := ( Action Arg1 Arg2 .. )
-Sequence    := ( Action && Action && .. )
-Alternative := ( Action || Action || .. )
-Set         := ( BoundVariable <- SetVariable: Action )
+Action      := Primitive | Sequence | Alternative | Set
+PAction     := Action | Cmd
+Primitive   := prm( PAction Par Par .. )
+Sequence    := seq( Action, Action, .. )
+Alternative := alt( Action, Action, .. )
+Set         := set( BoundPar <- SetPar: Action )
 
 Program
 -------
@@ -31,3 +32,16 @@ A program consists of:
 1. Declarations of all used variables
 2. Variable definitions (some could be defined via the command line parameters)
 3. A number of actions
+
+Invocation
+----------
+
+grash [ variable definitions ] < input.script
+
+Notes
+-----
+
+* Parameter values may not contain ':' characters. ':' is used to separate
+  command line assignments.
+* This language is line-based, which means each statement must begin and end on
+  the same line.
