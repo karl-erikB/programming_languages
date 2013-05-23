@@ -13,6 +13,7 @@ args.each() { arg ->
     symbols.addForwardDefinition pair[0], pair[1]
 }
 
+def exitCode = 0
 System.in.eachLine() { line, nr ->
     try {
         switch (line) {
@@ -48,7 +49,7 @@ System.in.eachLine() { line, nr ->
             break
         case ~ACTION:
             final interpreter = new Interpreter(symbols)
-            interpreter.run line, []
+            exitCode = interpreter.run line, []
             break
         default: println "Illegal statement on line $nr: $line"; break
         }
@@ -56,3 +57,5 @@ System.in.eachLine() { line, nr ->
         println "Error on line $nr: $e"
     }
 }
+
+System.exit(exitCode)
