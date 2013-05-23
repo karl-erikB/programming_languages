@@ -1,0 +1,9 @@
+par a
+par b
+par c
+par d
+def a hello
+def b world
+deff c ../../../test:.+[.]grash
+defp d c:grash:bash
+prm(echo c d)

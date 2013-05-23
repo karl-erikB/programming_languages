@@ -1,0 +1,11 @@
+par a
+par b
+par c
+par d
+par op
+def a 10
+def op -lt
+def b 15
+def c 10
+def d 5
+seq(prm(test a op b) prm(test a op c) prm(test a op d))
