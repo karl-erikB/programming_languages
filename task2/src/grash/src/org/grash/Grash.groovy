@@ -46,10 +46,10 @@ System.in.eachLine() { line, nr ->
             symbols.addDefinition Matcher.lastMatcher[0][1],
                                   Matcher.lastMatcher[0][2]
             break
-        case ~/prm\(.*\)/: println('prm'); break
-        case ~/seq\(.*\)/: println('seq'); break
-        case ~/alt\(.*\)/: println('alt'); break
-        case ~/set\(.*\)/: println('set'); break
+        case ~/(prm|seq|alt|set)\(.+\)/:
+            final interpreter = new Interpreter(symbols)
+            interpreter.run line
+            break
         default: println "Illegal statement on line $nr: $line"; break
         }
     } catch (GrashException e) {
