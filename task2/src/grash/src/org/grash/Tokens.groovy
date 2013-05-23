@@ -9,6 +9,7 @@ class Tokens {
     static final VAL = '[^:]+'
     static final PATH = '[^:]+'
     static final ACTION = /(prm|seq|alt|set)\(.+\)/
+    static final COMMENT = '#.*'
 	
 }
 
