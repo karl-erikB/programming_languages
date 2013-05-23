@@ -10,7 +10,7 @@ Definitions
 def  p1 astring                       /* Simple */
 def  p2 several strings               /* Set parameter */
 defp p3 source:regexp:replacement     /* Parameter copy / replace */
-deff p4 regexp                        /* File matching */
+deff p4 path:regexp                   /* File matching */
 
 grash p1:astring p2:"several strings" /* Definition at invocation */
 
@@ -41,8 +41,8 @@ grash [ variable definitions ] < input.script
 Notes
 -----
 
-* Parameter values and regexp may not contain ':' characters.
+* Parameter values, paths and regexp may not contain ':' characters.
   ':' is used to separate command line assignments and arguments in a
-  parameter copy/replace definition.
+  parameter definition.
 * This language is line-based, which means each statement must begin and end on
   the same line.
