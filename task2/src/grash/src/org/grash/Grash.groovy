@@ -6,15 +6,20 @@ import java.util.regex.Matcher
 import static Tokens.*
 
 final symbols = new Symbols()
+def infile = System.in
 
 args.each() { arg ->
     def pair = arg.tokenize ':'
     assert pair.size == 2
-    symbols.addForwardDefinition pair[0], pair[1]
+    if (pair[0] == "-i") {
+        infile = new File(pair[1])
+    } else {
+        symbols.addForwardDefinition pair[0], pair[1]
+    }
 }
 
 def exitCode = 0
-System.in.eachLine() { line, nr ->
+infile.eachLine() { line, nr ->
     try {
         switch (line) {
         case ~/par$WHITE($SYM)/:
