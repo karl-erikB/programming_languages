@@ -46,3 +46,7 @@ Notes
   parameter definition.
 * This language is line-based, which means each statement must begin and end on
   the same line.
+* Set semantics: Both BoundPar and SetPar must have been declared. In each
+  iteration of Action, BoundPar is redefined to the current element of SetPar.
+  Execution is aborted once the first action fails. Returns the exit code of the
+  last action.
