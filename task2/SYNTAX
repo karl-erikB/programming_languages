@@ -1,0 +1,33 @@
+Declarations
+------------
+
+par p1
+par p2, p3, p4
+
+Definitions
+-----------
+
+p1 := astring                       /* Simple */
+p2 := several strins                /* Set parameter */
+p3 #= source, regexp, replacement   /* Parameter copy / replace */
+p4 %= regexp                        /* File matching */
+
+grash p1:astring p2:"several strings" < script.g /* Definition at invocation */
+
+Actions
+-------
+
+Action      := Cmd | Primitive | Sequence | Alternative | Set
+Primitive   := ( Action Arg1 Arg2 .. )
+Sequence    := ( Action && Action && .. )
+Alternative := ( Action || Action || .. )
+Set         := ( BoundVariable <- SetVariable: Action )
+
+Program
+-------
+
+A program consists of:
+
+1. Declarations of all used variables
+2. Variable definitions (some could be defined via the command line parameters)
+3. A number of actions
