@@ -36,7 +36,15 @@ class Interpreter {
         final nextArgs = args.clone()
         
         if (command =~ /^$ACTION/) {
-            /* TODO */
+            final actions = []
+            final params = extractActions(command, actions).split()
+            assert actions.size() == 1
+
+            params.each { param ->
+                nextArgs << symbols.getSymbol(param)
+            }
+
+            run actions[0], nextArgs
         } else {
             final tokens = command.split()
             assert tokens.size() > 0
@@ -76,5 +84,34 @@ class Interpreter {
         return proc.exitValue()
     }
     
+    /* Parses all top-level actions in command and places them into the action
+     * list. The remaining string is returned.
+     */
+    private def extractActions(command, actions) {
+        def i = 0       /* The current index we are looking at. */
+        while (i < command.size()) {
+            final c = command[i..command.size() - 1]
+
+            if (!(c =~ /^[ ]*$ACTION/)) {
+                return c
+            }
+
+            def level = 1
+            def j = c.indexOf('(') + 1
+            while (level > 0 && j < c.size()) {
+                switch (c[j]) {
+                case '(': level++; break
+                case ')': level--; break
+                default: break
+                }
+
+                j++
+            }
+
+            actions << c[0..j - 1].trim()
+            i += j
+        }
+    }
+
 }
 
