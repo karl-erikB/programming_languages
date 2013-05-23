@@ -1,8 +1,8 @@
 package org.grash
 
 class Symbols {
-    private def forwardDefinitions = [:]
-    private def definitions = [:]
+    private final forwardDefinitions = [:]
+    private final definitions = [:]
     
     void addForwardDefinition(sym, val) {
         forwardDefinitions.put sym, val

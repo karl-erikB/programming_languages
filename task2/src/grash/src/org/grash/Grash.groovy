@@ -2,7 +2,7 @@ package org.grash
 
 import java.util.regex.Matcher
 
-def symbols = new Symbols()
+final symbols = new Symbols()
 
 args.each() { arg ->
     def pair = arg.tokenize ':'
