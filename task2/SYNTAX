@@ -20,8 +20,8 @@ Actions
 Action      := Primitive | Sequence | Alternative | Set
 PAction     := Action | Cmd
 Primitive   := prm( PAction Par Par .. )
-Sequence    := seq( Action, Action, .. )
-Alternative := alt( Action, Action, .. )
+Sequence    := seq( Action Action .. )
+Alternative := alt( Action Action .. )
 Set         := set( BoundPar <- SetPar: Action )
 
 Program
