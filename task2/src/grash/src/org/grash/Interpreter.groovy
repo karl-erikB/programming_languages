@@ -8,48 +8,61 @@ class Interpreter {
     
     final symbols
     
-    Interpreter(def symbols) {
+    Interpreter(symbols) {
         this.symbols = symbols;
     }
     
-    def run(def command) {
-        switch (line) {
-        case ~/prm\(.+)/:
-            return prm(Matcher.lastMatcher[0][1])
+    def run(command, args) {
+        switch (command) {
+        case ~/prm\((.+)\)/:
+            return prm(Matcher.lastMatcher[0][1], args)
             break
-        case ~/seq\(.+)/:
-            return seq(Matcher.lastMatcher[0][1])
+        case ~/seq\((.+)\)/:
+            return seq(Matcher.lastMatcher[0][1], args)
             break
-        case ~/alt\(.+)/:
-            return alt(Matcher.lastMatcher[0][1])
+        case ~/alt\((.+)\)/:
+            return alt(Matcher.lastMatcher[0][1], args)
             break
-        case ~/set\(.+)/:
-            return set(Matcher.lastMatcher[0][1])
+        case ~/set\((.+)\)/:
+            return set(Matcher.lastMatcher[0][1], args)
             break
         default:
-            return cmd(command)
+            return cmd(command, args)
             break
         }
     }
     
-    private def prm(def command) {
+    private def prm(command, args) {
+        final nextArgs = args.clone()
+        
+        if (command =~ /^$ACTION/) {
+            /* TODO */
+        } else {
+            final tokens = command.split()
+            assert tokens.size() > 0
+
+            final params = tokens.drop(1)
+            params.each { param ->
+                nextArgs << symbols.getSymbol(param)
+            }
+
+            run tokens[0], nextArgs
+        }
+    }
+    
+    private def seq(command, args) {
         
     }
     
-    private def seq(def command) {
+    private def alt(command, args) {
         
     }
     
-    private def alt(def command) {
+    private def set(command, args) {
         
     }
     
-    private def set(def command) {
-        
-    }
-    
-    private def cmd(def command) {
-        
+    private def cmd(command, args) {
     }
     
 }

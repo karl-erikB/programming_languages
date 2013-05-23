@@ -48,7 +48,7 @@ System.in.eachLine() { line, nr ->
             break
         case ~ACTION:
             final interpreter = new Interpreter(symbols)
-            interpreter.run line
+            interpreter.run line, []
             break
         default: println "Illegal statement on line $nr: $line"; break
         }
