@@ -38,7 +38,10 @@ class Interpreter {
         if (command =~ /^$ACTION/) {
             final actions = []
             final params = extractActions(command, actions).split()
-            assert actions.size() == 1
+
+            if (actions.size() != 1) {
+                throw new IllegalSyntaxException("Primitive does not contain exactly one action")
+            }
 
             params.each { param ->
                 nextArgs << symbols.getSymbol(param)
@@ -47,7 +50,10 @@ class Interpreter {
             run actions[0], nextArgs
         } else {
             final tokens = command.split()
-            assert tokens.size() > 0
+
+            if (tokens.size() < 1) {
+                throw new IllegalSyntaxException("Empty primitive action")
+            }
 
             final params = tokens.drop(1)
             params.each { param ->
@@ -106,6 +112,10 @@ class Interpreter {
                 }
 
                 j++
+            }
+
+            if (level != 0) {
+                throw new IllegalSyntaxException("Found malformed action: $c")
             }
 
             actions << c[0..j - 1].trim()
