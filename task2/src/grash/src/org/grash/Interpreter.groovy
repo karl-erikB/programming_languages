@@ -63,6 +63,17 @@ class Interpreter {
     }
     
     private def cmd(command, args) {
+        final rawCommand = [ command ]
+        rawCommand.addAll(args)
+
+        println "Executing $rawCommand"
+
+        final proc = rawCommand.execute()
+        proc.waitFor()
+
+        println proc.in.text
+
+        return proc.exitValue()
     }
     
 }
