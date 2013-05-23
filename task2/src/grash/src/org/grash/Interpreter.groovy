@@ -65,11 +65,39 @@ class Interpreter {
     }
     
     private def seq(command, args) {
+        final actions = []
+        extractActions(command, actions)
+
+        if (actions.size() == 0) {
+            throw new IllegalSyntaxException("Empty sequence")
+        }
+
+        /* Loops until an execution returns != 0. */
+        def exitCode = 0
+        actions.find {
+            exitCode = run(it, args)
+            return exitCode != 0
+        }
         
+        return exitCode
     }
     
     private def alt(command, args) {
+        final actions = []
+        extractActions(command, actions)
+
+        if (actions.size() == 0) {
+            throw new IllegalSyntaxException("Empty alternative")
+        }
+
+        /* Loops until an execution returns != 0. */
+        def exitCode = 0
+        actions.find {
+            exitCode = run(it, args)
+            return exitCode == 0
+        }
         
+        return exitCode
     }
     
     private def set(command, args) {
