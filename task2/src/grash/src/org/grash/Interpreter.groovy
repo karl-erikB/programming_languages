@@ -35,19 +35,17 @@ class Interpreter {
     private def prm(command, args) {
         final nextArgs = args.clone()
         
+        def nextCommand
+        def nextParams
         if (command =~ /^$ACTION/) {
             final actions = []
-            final params = extractActions(command, actions).split()
+            nextParams = extractActions(command, actions).split()
 
             if (actions.size() != 1) {
                 throw new IllegalSyntaxException("Primitive does not contain exactly one action")
             }
 
-            params.each { param ->
-                nextArgs << symbols.getSymbol(param)
-            }
-
-            run actions[0], nextArgs
+            nextCommand = actions[0]
         } else {
             final tokens = command.split()
 
@@ -55,13 +53,12 @@ class Interpreter {
                 throw new IllegalSyntaxException("Empty primitive action")
             }
 
-            final params = tokens.drop(1)
-            params.each { param ->
-                nextArgs << symbols.getSymbol(param)
-            }
-
-            run tokens[0], nextArgs
+            nextCommand = tokens[0]
+            nextParams = tokens.drop(1)
         }
+
+        nextParams.each { nextArgs << symbols.getSymbol(it) }
+        run nextCommand, nextArgs
     }
     
     private def seq(command, args) {
