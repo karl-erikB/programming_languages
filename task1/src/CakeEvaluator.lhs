@@ -155,7 +155,8 @@ The functions relevant to the above are char and append:
 
 > parChar :: Integer -> V.String8 -> Either String V.Value
 > parChar i ins
->   | (i >= len) = Left "cannot fetch character: index too large"
+>   | i < 0      = Left "cannot fetch character: index less than zero"
+>   | (i >= len) = Right $ V.CInteger (-1)
 >   | otherwise  = Right $ V.CInteger $ fromIntegral $ ins `genericIndex` i
 >   where
 >     len = genericLength ins
