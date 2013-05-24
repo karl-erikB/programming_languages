@@ -91,7 +91,7 @@ The next function lets us pretend that even the relational operators are integer
 binary operators.
 
 > comparisonIntegers :: (Integer -> Integer -> Bool) -> Integer -> Integer -> Either a Integer
-> comparisonIntegers cmp a b = Right (if cmp a b then 1 else 0)
+> comparisonIntegers cmp a b = Right (if cmp a b then 0 else 1)
 
 The next one does the same for and and or.
 
@@ -101,10 +101,13 @@ The next one does the same for and and or.
 >   | (b < 0) || (b > 1) = Left "bolean value of right operand out of range"
 >   | otherwise          = Right intgr
 >   where
->     boola = toEnum $ fromIntegral a
->     boolb = toEnum $ fromIntegral b
+>     boola = intToBool a
+>     boolb = intToBool b
 >     boolr = cmp boola boolb
->     intgr = fromIntegral $ fromEnum boolr
+>     intgr = boolToInt boolr
+>     -- 0 is true, 1 is false -- don't ask.
+>     intToBool i = not $ toEnum $ fromIntegral i
+>     boolToInt b = fromIntegral $ fromEnum $ not b
 
 This function abstracts away stack details from operations that take an integral
 value and a stack and return an error message or a new stack. The prescribed
