@@ -66,8 +66,8 @@ shunt it through.
 >   | otherwise                = Right (d, push (V.CInteger $ fromRight reseither) stn)
 >   where
 >     (operands, stn)  = multipop 2 stk
->     lopval           = operands !! 0
->     ropval           = operands !! 1
+>     ropval           = operands !! 0
+>     lopval           = operands !! 1
 >     (V.CInteger lop) = lopval
 >     (V.CInteger rop) = ropval
 >     reseither        = f lop rop
