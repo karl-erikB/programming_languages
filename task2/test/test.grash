@@ -2,13 +2,7 @@ par tests
 par grashopts
 par grashopt
 par groovyopt
-par one
-par two
-par equals
 
-def one 1
-def two 2
-def equals ==
 def groovyopt org/grash/Grash.groovy
 
 # We now need to construct the individual arguments for each test execution.
@@ -26,4 +20,4 @@ defp grashopts grashopts:^:-i:../../../test/
 # test script found in test/. The alt(seq(prm() false) true) construct
 # only ensures that each test is executed, even if it returns an exit code != 0.
 
-set(grashopt <- grashopts: alt(seq(prm(groovy groovyopt grashopt) prm(test one equals two)) prm(test one equals one)))
+set(grashopt <- grashopts: alt(seq(prm(groovy groovyopt grashopt) prm(false)) prm(true)))
