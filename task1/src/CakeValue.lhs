@@ -23,6 +23,7 @@ This module defines the types of values available to place onto the stack.
 >                          )
 >                  , isInteger
 >                  , isParen
+>                  , str8ToString
 >                  ) where
 
 > import Data.Word ( Word8 )
@@ -31,6 +32,11 @@ Since all our strings will only contain 8-bit code points, let's create a type
 alias:
 
 > type String8 = [Word8]
+
+We should also provide a (lossless) conversion function to a string of Chars.
+
+> str8ToString :: String8 -> String
+> str8ToString s8 = [toEnum $ fromEnum x | x <- s8]
 
 The following values are prescribed by the specification:
 
