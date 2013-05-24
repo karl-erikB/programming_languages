@@ -1,5 +1,8 @@
 package org.grash
 
+/**
+ * These tokens are used to parse script files.
+ */
 class Tokens {
 
     static final WHITE = '[ ]+'

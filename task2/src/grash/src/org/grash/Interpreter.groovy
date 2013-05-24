@@ -12,6 +12,9 @@ class Interpreter {
         this.symbols = symbols;
     }
     
+    /* The top level interpreter function.
+     * command is the entire remaining string to be interpreted, and
+     * args is the current list of bound arguments. */
     def run(command, args) {
         switch (command) {
         case ~/prm\((.+)\)/:
@@ -34,6 +37,10 @@ class Interpreter {
     
     private def prm(command, args) {
         final nextArgs = args.clone()
+
+        /* We have two cases: either prm() contains yet another action, in which case
+         * we need to descend yet further with our interpreter.
+         * Otherwise, the first argument is a command we need to call. */
         
         def nextCommand
         def nextParams
@@ -57,6 +64,7 @@ class Interpreter {
             nextParams = tokens.drop(1)
         }
 
+        /* Look up all arguments and bind their values to all child actions. */
         nextParams.each { nextArgs << symbols.getSymbol(it) }
         run nextCommand, nextArgs
     }
@@ -69,6 +77,9 @@ class Interpreter {
         runUntil command, args, {it == 0 }
     }
 
+    /* Extracts a list of actions from command, and executes
+     * each in turn until shouldStop evaluates to true. The
+     * exit code of the last action is returned. */
     private def runUntil(command, args, shouldStop) {
         final actions = []
         extractActions(command, actions)
@@ -87,6 +98,9 @@ class Interpreter {
         return exitCode
     }
     
+    /* For each token of a set parameter, binds that token to the bound symbol
+     * and executes the given action until either all tokens have been processed
+     * or an action returns != 0. As always, returns the last exit code. */
     private def set(command, args) {
         final matcher = (command =~ /($SYM)$WHITE_<-$WHITE_($SYM)$WHITE_:$WHITE_($ACTION)/)
 
@@ -118,6 +132,8 @@ class Interpreter {
         return exitCode
     }
     
+    /* Executes the command with all given arguments,
+     * prints its output, and returns its exit code. */
     private def cmd(command, args) {
         final rawCommand = [ command ]
         rawCommand.addAll(args)
@@ -133,8 +149,7 @@ class Interpreter {
     }
     
     /* Parses all top-level actions in command and places them into the action
-     * list. The remaining string is returned.
-     */
+     * list. The remaining string is returned. */
     private def extractActions(command, actions) {
         def i = 0       /* The current index we are looking at. */
         while (i < command.size()) {
