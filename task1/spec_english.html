@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Task 1 - Programming Languages, 2013&nbsp;S</title>
+</head>
+
+<body id="top">
+
+<div>
+<p class="rightquote">
+  Programming languages<br />
+   Course 185.208, Lecture with Tutorial, 3 ECTS, 2013 S
+</p>
+<h1>Task 1</h1>
+<h4>Task:</h4>
+<p>Develop a simulation of a programmable calculator according to the following
+specification in a programming language of your choice and use it to solve the
+test tasks further down the page.</p>
+
+<p>The test tasks 1 and 2 must be performed.</p>
+
+<h4>Input into the calculator:</h4>
+<p>Input occurs using postfix notation (first the arguments, then the operator).
+The number of required arguments depends on the operator. Arguments are whole
+numbers (or parenthesized expressions, described later). For example,
+<q>1 2+</q> is an application of the operator <q>+</q> on 1 and 2, which returns
+3 as a result. The expression <q>1 2 3 4+*-</q> returns -13: the first operator
+adds the directly preceding arguments 3 and 4, returning 7; the operator
+<q>*</q> multiplies the now directly preceding arguments 2 and 7; and finally
+<q>-</q> on 1 and 14.</p>
+
+<p>Expressions in parentheses are not immediately evaluated; instead, an
+operator processes them as arguments. For example, <q>(2*)</q> as an argument
+of <q>@</q> is an operator itself, which multiplies an argument by 2. The
+expression <q>3(2*)@</q> evaluates to <q>3 2*</q> and eventually to 6.</p>
+
+<p>The calculator only uses integers as data (apart from parenthesized
+expressions). Numbers in the respective value range are interpreted as
+characters and shown on the display (ASCII characters are recommended, but
+different encodings may be used). Internally, no distinction is made between
+integers and characters. For example, the number 65 is displayed as <q>A</q>.
+Before displaying the number <q>65</q>, it must be converted into the ASCII
+values of its digits (54 and 53).</p>
+
+<h4>Architektur:</h4>
+
+<p>The calculator consists of the following parts:</p>
+
+<dl>
+<dt>Keypad</dt>
+<dd>The keypad (= standard input) allows the input of programs and data.</dd>
+<dt>Display</dt>
+<dd>The display can display ASCII characters in fields arranged in 4 rows by 64
+columns. These fields are numbered from 0 to 255. One of the operators can place
+a character into a specific field of the display.</dd>
+<dt>Stack</dt>
+<dd>Expressions in postfix notation can be simply calculated using a stack: each
+argument is pushed on top of the stack. Operators pop as many arguments from the
+stack as necessary and push the result(s).</dd>
+<dt>Input list</dt>
+<dd>Contains the input that has not yet been processed. All inputs are processed
+character by character in this list. Apart from direct input via the keypad of
+the calculator, the operator <q>@</q> can also add new elements into this
+list.</dd>
+</dl>
+
+<p>To simplify the implementation, the stack, the input list, parenthetized
+expressions, integers, etc. can be limited to (sane) maximum sizes; if they are,
+exceeding them must lead to an error.</p>
+
+<h4>Operationen:</h4>
+<p>The semantics of the following input are predefined:</p>
+<dl>
+<dt>Digits <q>0</q> to <q>9</q>:</dt>
+<dd>All digits in the input list directly succeeding this one are combined into
+a number, which is pushed as a new item onto the stack.</dd>
+<dt><q>(</q> and <q>)</q>:</dt>
+<dd>The opening parenthesis effects that all input following it (until a
+matching closing parenthesis) is seen as a unit, which is placed onto the stack
+(e.g. as a string). Parentheses may be nested.</dd>
+<dt>White space (space, tab, newline, carriage return):</dt>
+<dd>These inputs are useful to split two numbers; they have no other meaning and
+are ignored.</dd>
+<dt>Arithmetical operators and comparison operators (<q>+</q>, <q>-</q>,
+<q>*</q>, <q>/</q>, <q>%</q>, <q>&amp;</q>, <q>|</q>, <q>=</q>, <q>&lt;</q>,
+<q>&gt;</q>):</dt>
+<dd>These binary operators match the basic arithmetic operators (with <q>%</q>
+calculating the modulus) and simple comparisons, where &amp; and | are the
+logical AND and OR, respectively. These operators pop the two top elements off
+the stack and push the result onto the stack. If an argument is not a number but
+a parenthesized expression, or if an argument to &amp; or | is not a boolean
+value (0 is <q>true</q>, 1 is <q>false</q>), an error must be reported. <q>=</q>
+is an exception: if it is applied to two equal parenthesized expressions or two
+equal numbers, it should return 0 (true), otherwise 1 (false). Non-commutative
+operations enforce a specific argument order: <q>4 2-</q>, <q>4 2/</q> and <q>2
+4%</q> all evaluate to 2, and <q>4 2&gt;</q> and <q>2 4&lt;</q> evaluate to
+<q>true</q>. An error must be produced if the second argument of / or % is 0.</dd>
+<dt>Negation <q>~</q></dt>
+<dd>is only defined on integers.</dd>
+<dt>Copy <q>!</q>:</dt>
+<dd>replaces the topmost element n on the stack with a copy of the n-th element
+on the stack (counting from 1 at the position of n). An error is output if n is
+not a positive number or the stack doesn&#8217;t contain enough elements.</dd>
+<dt>Delete <q>#</q>:</dt>
+<dd>pops the topmost element n off the stack and additionally deletes the n-th
+element from the stack. An error is output if n is not a positive number or the
+stack doesn&#8217;t contain enough elements.</dd>
+<dt>Apply <q>@</q>:</dt>
+<dd>pops the topmost element off the stack. If this argument is a parenthesized
+expression, the parentheses are stripped and the expression is placed to the
+front of the input list, so that the input in this list is processed next. If
+the argument is an integer, <q>@</q> pushes it back onto the stack without
+modifying it.</dd>
+<dt>Read <q>?</q>:</dt>
+<dd>pops the top two elements off the stack, where one must be a non-negative
+number n and the other a parenthesized expression; otherwise, an error is
+output. The result, the (ASCII) code of the n-th character in the parenthesized
+expression, is pushed onto the stack. If the parenthesized expression contains
+fewer than n characters, -1 is placed onto the stack.</dd>
+<dt>Extend <q>;</q>:</dt>
+<dd>pops the top two elements off the stack, where one must be an integer
+interpretable as an (ASCII) code and the other a parenthesized expression;
+otherwise, an error is output. The result, the parenthesized expression with the
+given character appended to the end (before the closing parenthesis), is pushed
+onto the stack. Thus, the integer is interpreted as a character and appended to
+the parenthesized expression.</dd>
+<dt>Output <q>$</q>:</dt>
+<dd>pops the top two elements off the stack, where one must be an integer
+interpretable as an (ASCII) code and the other the number of a field on the
+display, and stores the character in the respective field. If an argument is not
+a number of out of range, an error must be output.</dd>
+<dt>Controlled input mode <q>"</q>:</dt>
+<dd>terminates normal input mode (where keyboard input is directly placed into
+the input list) and initiates controlled input mode, where keyboard input is
+placed in parenthesized expressions. When a line is terminated using Enter or
+Return, the whole line (placed in parentheses) is pushed onto the stack. The
+controlled input mode is useful if input is checked, preprocessed or displayed
+before processing.</dd>
+<dt>Normal input mode <q>'</q>:</dt>
+<dd>terminates controlled input mode and returns to normal input mode.</dd>
+</dl>
+
+<h4>Examples:</h4>
+<p>A few examples should illustrate the usage of the operators. We describe the
+state of the calculator using the stack contents (left of the <q>^</q>,
+top-of-stack is directly next to <q>^</q>, entries split by spaces) and the
+input list (right of the <q>^</q>, next character to process directly next to
+<q>^</q>). Arrows between such status descriptions show changes in state through
+execution of operations.</p>
+<p>The first example shows a conditional instruction: The stack expects 0 (true)
+or 1 (false). Depending on that, either one or the other parenthesized
+expression is evaluated. We first place the expression for the true branch
+<q>(9)</q> and then the false branch <q>(9~)</q> onto the stack and execute the
+expression <q>(4!5#2+#@)</q>, which represents the conditional expression
+itself. The following steps demonstrate what happens if the stack originally
+contained 0:</p>
+<pre>
+  0 ^(9)(9~)(4!5#2+#@)@
+&#8594; 0 (9) ^(9~)(4!5#2+#@)@
+&#8594; 0 (9) (9~) ^(4!5#2+#@)@
+&#8594; 0 (9) (9~) (4!5#2+#@) ^@
+&#8594; 0 (9) (9~) ^4!5#2+#@
+&#8594; 0 (9) (9~) 4 ^!5#2+#@
+&#8594; 0 (9) (9~) 0 ^5#2+#@
+&#8594; 0 (9) (9~) 0 5 ^#2+#@
+&#8594; (9) (9~) 0 ^2+#@
+&#8594; (9) (9~) 0 2 ^+#@
+&#8594; (9) (9~) 2 ^#@
+&#8594; (9) ^@
+&#8594; ^ 9
+&#8594; 9 ^
+</pre>
+<p>
+The next example shows, by calculating factorial-of-3, how to realize recursive
+routines. For simplification purposes, we substitute the expression
+(3!3!1-2!1=()5!C@3#*) by A, where C is the expression (4!5#2+#@) from the
+previous example. Note that A and C are only used to facilitate readability;
+the actual parenthesized expression must be input into the calculator.</p>
+<pre>
+  3 ^A3!4#3!@3#
+&#8594; 3 A ^3!4#3!@3#
+&#8594; 3 A 3 ^!4#3!@3#
+&#8594; 3 A 3 ^4#3!@3#
+&#8594; 3 A 3 4 ^#3!@3#
+&#8594; A 3 ^3!@3#
+&#8594; A 3 3 ^!@3#
+&#8594; A 3 A ^@3#
+&#8594; A 3 ^ 3!3!1-2!1=()5!C@3#* 3#
+&#8594; A 3 3 ^!3!1-2!1=()5!C@3#* 3#
+&#8594; A 3 A ^3!1-2!1=()5!C@3#* 3#
+&#8594; A 3 A 3 ^!1-2!1=()5!C@3#* 3#
+&#8594; A 3 A 3 ^1-2!1=()5!C@3#* 3#
+&#8594; A 3 A 3 1 ^-2!1=()5!C@3#* 3#
+&#8594; A 3 A 2 ^2!1=()5!C@3#* 3#
+&#8594; A 3 A 2 2 ^!1=()5!C@3#* 3#
+&#8594; A 3 A 2 2 ^1=()5!C@3#* 3#
+&#8594; A 3 A 2 2 1 ^=()5!C@3#* 3#
+&#8594; A 3 A 2 1 ^()5!C@3#* 3#
+&#8594; A 3 A 2 1 () ^5!C@3#* 3#
+&#8594; A 3 A 2 1 () 5 ^!C@3#* 3#
+&#8594; A 3 A 2 1 () A ^C@3#* 3#
+&#8594; A 3 A 2 1 () A C ^@3#* 3#
+...
+&#8594; A 3 A 2 A ^@ 3#* 3#
+&#8594; A 3 A 2 ^ 3!3!1-2!1=()5!C@3#* 3#* 3#
+&#8594; A 3 A 2 3 ^!3!1-2!1=()5!C@3#* 3#* 3#
+&#8594; A 3 A 2 A ^3!1-2!1=()5!C@3#* 3#* 3#
+&#8594; A 3 A 2 A 3 ^!1-2!1=()5!C@3#* 3#* 3#
+&#8594; A 3 A 2 A 2 ^1-2!1=()5!C@3#* 3#* 3#
+&#8594; A 3 A 2 A 2 1 ^-2!1=()5!C@3#* 3#* 3#
+&#8594; A 3 A 2 A 1 ^2!1=()5!C@3#* 3#* 3#
+&#8594; A 3 A 2 A 1 2 ^!1=()5!C@3#* 3#* 3#
+&#8594; A 3 A 2 A 1 1 ^1=()5!C@3#* 3#* 3#
+&#8594; A 3 A 2 A 1 1 1 ^=()5!C@3#* 3#* 3#
+&#8594; A 3 A 2 A 1 0 ^()5!C@3#* 3#* 3#
+&#8594; A 3 A 2 A 1 0 () ^5!C@3#* 3#* 3#
+&#8594; A 3 A 2 A 1 0 () 5 ^!C@3#* 3#* 3#
+&#8594; A 3 A 2 A 1 0 () A ^C@3#* 3#* 3#
+&#8594; A 3 A 2 A 1 0 () A C ^@3#* 3#* 3#
+...
+&#8594; A 3 A 2 A 1 () ^@ 3#* 3#* 3#
+&#8594; A 3 A 2 A 1 ^ 3#* 3#* 3#
+&#8594; A 3 A 2 A 1 3 ^#* 3#* 3#
+&#8594; A 3 A 2 1 ^* 3#* 3#
+&#8594; A 3 A 2 ^ 3#* 3#
+&#8594; A 3 A 2 3 ^#* 3#
+&#8594; A 3 2 ^* 3#
+&#8594; A 6 ^ 3#
+&#8594; A 6 3 ^#
+&#8594; 6 ^
+</pre>
+
+<h4>Test task 1:</h4>
+<p>The calculator is so primitive that (apart from errors in the console when
+the program aborts) no output is performed without prior programming. Write a
+program in the language of the calculator, which displays the newest input into
+the calculator and the topmost elements of the stack on the calculator&#8217;s
+display. It is your choice how to efficiently use the limited space on the
+display.</p>
+<p>Practical hint: Programming (or bootstrapping) the calculator requires
+inputting long and complex expressions. The easiest way to do this is input via
+a text console, which allows inputting programs via copying and pasting.</p>
+
+<h4>Test task 2:</h4>
+<p>Devise a short and efficient expression in the language of the calculator,
+which decides whether a number input via the keypad is a prime number or not,
+and output the result in a readable form (i.e. not only as 0 or 1) on the
+display. Test with multiple numbers, some of them larger (at least up to
+1000).</p>
+
+<h4>Additional tasks for those interested:</h4>
+<p>The question is: can this calculator really program everything? Is it
+possible to build a Turing machine using the calculator? It is not necessary to
+solve these tasks and they do not affect grading.</p>
+
+</div>
+</body>
+</html>
