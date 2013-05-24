@@ -183,9 +183,23 @@ Now let's define the binary operators.
 > evaluateOne V.CAnd         d s = evaluateIntBin (binaryBools (&&)) d s
 > evaluateOne V.COr          d s = evaluateIntBin (binaryBools (||)) d s
 
-> evaluateOne V.CEqual       d s = evaluateIntBin (comparisonIntegers (==)) d s
 > evaluateOne V.CLessThan    d s = evaluateIntBin (comparisonIntegers (<))  d s
 > evaluateOne V.CGreaterThan d s = evaluateIntBin (comparisonIntegers (>))  d s
+
+Equality must work on parenthesized expressions as well, so it's a special case.
+
+> evaluateOne V.CEqual d stk
+>   | (length operands) < 2 = Left "cannot compare: stack too shallow"
+>   | lopinvalid            = Left "cannot compare: left operand is not a value"
+>   | ropinvalid            = Left "cannot compare: right operand is not a value"
+>   | otherwise             = Right (d, push (V.CInteger ret) stn)
+>   where
+>     (operands, stn)  = multipop 2 stk
+>     lopval           = operands !! 0
+>     ropval           = operands !! 1
+>     lopinvalid       = not (V.isInteger lopval) && not (V.isParen lopval)
+>     ropinvalid       = not (V.isInteger ropval) && not (V.isParen ropval)
+>     ret              = if lopval == ropval then 0 else 1
 
 Negation is relatively simple.
 
