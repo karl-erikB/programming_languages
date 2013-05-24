@@ -1,0 +1,93 @@
+\documentclass[a4paper,10pt]{article}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage[usenames,dvipsnames]{color}
+\usepackage{comment}
+\usepackage[utf8]{inputenc}
+\usepackage{listings}
+\usepackage[pdfborder={0 0 0}]{hyperref}
+\usepackage{spverbatim}
+\usepackage{booktabs}
+\usepackage{graphicx}
+
+\definecolor{OliveGreen}{cmyk}{0.64,0,0.95,0.40}
+\definecolor{Gray}{gray}{0.5}
+
+\lstset{
+    language=C,
+    basicstyle=\ttfamily,
+    keywordstyle=\color{OliveGreen},
+    commentstyle=\color{Gray},
+    captionpos=b,
+    breaklines=true,
+    breakatwhitespace=false,
+    showspaces=false,
+    showtabs=false,
+    numbers=left,
+}
+
+\title{VU Programming Languages \\
+       Task 3}
+
+\begin{document}
+
+\maketitle
+
+\section{Specification}
+
+In a strongly typed functional language (ML or Haskell), develop
+an application for managing train seat reservations. Every
+reservation is made for a specific train between two named stations
+for some count of persons.
+If it is necessary to switch trains on a journey, separate reservations
+must be made.
+
+The amount of available sets is not only determined by the number
+of available seats per train car and the number of train cars per train;
+additionally, each train has a certain number of seats which must
+remain free for passengers without reservations.
+Of course, no seat may be booked twice.
+
+If a reservation is made for more than one person, each seat must
+be in the same train car and have consecutive seat numbers (i.e. Car 3,
+Seats 5 to 9).
+
+Besides placing reservations, the following queries must be supported:
+
+\begin{itemize}
+\item The train network with all known stations, trains (including
+    count and size of train cars) and stations where switching trains
+    is possible. The train network should include several crossing
+    lines as well as multiple trains per line.
+\item The minimum number of seats which must remain free as well
+    as the maximum number of reservations per train and train car between
+    two stations. Consider that reservations might not be made
+    for the entire line.
+\item All reservations for a seat in a specific train. The result must
+    include all station pairs for existing reservations.
+\item The smallest number of seats available for reservation between
+    two stations, as well as the maximum group count (= maximum
+    number of people per reservation) for one or more trains (if
+    it is necessary to change trains).
+\item All data should be persisted between program executions.
+\end{itemize}
+
+This task is about managing data. At first glance, this seems to be a
+contradiction to modern functional languages. However, there are
+many different ways of solving this exercise. Taking a closer look
+at the language libraries might help finding an optimal solution.
+
+\section{ML}
+
+For programming in ML, OCaml is recommended. This system extends
+ML by object-oriented concepts; however, limit yourself to the
+functional aspects of the language and do not use any object-oriented
+extensions.
+
+\section{Haskell}
+
+General information about Haskell is available at \url{
+http://www.haskell.org/}. The recommended system is GHC: \url{http://www.haskell.org/ghc/}.
+
+\end{document}
