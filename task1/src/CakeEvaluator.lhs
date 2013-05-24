@@ -1,7 +1,8 @@
 This module performs the actual evaluation of the operands on the stack.
 
 > module CakeEvaluator ( evaluate
->                      , evaluateIO
+>                      , evaluateSingleStep
+>                      , evaluateStepping
 >                      , evaluateOne
 >                      ) where
 
@@ -9,6 +10,7 @@ First, let's import all the pertinent modules.
 
 > import Data.List ( genericIndex
 >                  , genericLength
+>                  , genericReplicate
 >                  )
 > import Data.Either.Unwrap ( fromLeft
 >                           , fromRight
@@ -36,6 +38,7 @@ First, let's import all the pertinent modules.
 >                    , setCharAt
 >                    )
 > import qualified CakeParser as Pa
+> import qualified CakePrinter as Pr
 > import qualified CakeValue as V
 
 Now, let's define a function that evaluates the value at the top of the stack.
@@ -233,7 +236,7 @@ it unchanged.
 >     (Stack xs)      = stk
 >     (val:ys)        = xs
 >     (V.CParen sval) = val
->     parseres        = Pa.parse [toEnum $ fromEnum x | x <- sval]
+>     parseres        = Pa.parse $ V.str8ToString sval
 >     (Stack ps)      = fromRight parseres
 >     zs              = ps ++ ys
 
@@ -278,55 +281,43 @@ immediately percolates upward.
 Due to the support of the eval operator, anytime the stack changes, processing
 must start anew at the bottom.
 
-> evaluate :: State -> Either String State
-> evaluate st8
+Defining a single-step evaluation function first allows some step-by-step
+coolness later on.
+
+> evaluateSingleStep :: State -> Either String State
+> evaluateSingleStep st8@(State dsp stk)
 >   | (depth stk) == 0 = Right st8
->   | otherwise        = evalMeRec dsp stk
+>   | isLeft subres    = Left $ fromLeft subres
+>   | substk /= srstk  = Right $ State srdsp (push tos srstk)
+>   | isLeft meres     = Left $ fromLeft meres
+>   | otherwise        = Right $ State medsp mestk
 >   where
->     (State dsp stk)     = st8
->     evalMeRec dsp stk
->       | (depth stk) == 0  = Right (State dsp stk)
->       | isLeft subres     = Left $ fromLeft subres
->       | nsubstk /= substk = evalMeRec nsubdsp $ push tos nsubstk
->       | isLeft oneres     = Left $ fromLeft oneres
->       | nstk /= stk       = evalMeRec ndsp nstk
->       | otherwise         = Right $ State ndsp nstk
->       where
->         (tos, substk)           = pop stk
->         subst8                  = (State dsp substk)
->         subres                  = evaluate subst8
->         (State nsubdsp nsubstk) = fromRight subres
->         oneres                  = evaluateOne tos dsp nsubstk
->         (ndsp, nstk)            = fromRight oneres
+>     (tos, substk)       = pop stk
+>     subres              = evaluateSingleStep (State dsp substk)
+>     (State srdsp srstk) = fromRight subres
+>     meres               = evaluateOne tos srdsp srstk
+>     (medsp, mestk)      = fromRight meres
 
-Now, a variant of the evaluate function that outputs step-by-step information
-using putStrLn.
+> evaluate :: State -> Either String State
+> evaluate st8@(State dsp stk)
+>    | isLeft oneres = oneres
+>    | stk == newstk = oneres
+>    | otherwise     = evaluate onest8
+>    where
+>      oneres           = evaluateSingleStep st8
+>      onest8           = fromRight oneres
+>      (State _ newstk) = onest8
 
-> evalMeRecIO :: Display -> Stack V.Value -> IO (Either String State)
-> evalMeRecIO dsp stk = do
->   let (tos, substk) = pop stk
->   let subst8        = (State dsp substk)
->   putStr $ show substk
->   putStr " -> "
->   subres           <- evaluateIO subst8
->   if isLeft subres then return $ Left $ fromLeft subres else do
->     let (State nsubdsp nsubstk) = fromRight subres
->     putStrLn $ show nsubstk
->     if nsubstk /= substk then evalMeRecIO nsubdsp (push tos nsubstk) else do
->       putStr $ show tos
->       putStr " "
->       putStr $ show nsubstk
->       putStr " -> "
->       let oneres = evaluateOne tos dsp nsubstk
->       if isLeft oneres then return $ Left $ fromLeft oneres else do
->         let (ndsp, nstk) = fromRight oneres
->         putStrLn $ show nstk
->         if nstk /= stk then evalMeRecIO ndsp nstk else return $ Right $ State ndsp nstk
+... and this is the promised step-by-step coolness.
 
-> evaluateIO :: State -> IO (Either String State)
-> evaluateIO st8 = do
->   let (State dsp stk) = st8
->   --putStrLn $ show stk
->   if (depth stk) == 0
->   then return $ Right st8
->   else evalMeRecIO dsp stk
+> evaluateStepping :: State -> IO (Either String State)
+> evaluateStepping st8@(State dsp stk)
+>   | isLeft oneres = return oneres
+>   | stk == newstk = return oneres
+>   | otherwise     = do
+>     putStrLn $ Pr.prettyStack stk
+>     evaluateStepping onest8
+>   where
+>     oneres           = evaluateSingleStep st8
+>     onest8           = fromRight oneres
+>     (State _ newstk) = onest8
