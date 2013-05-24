@@ -16,8 +16,9 @@ outputState st8 = do
 evalStk :: Sk.Stack V.Value -> IO ()
 evalStk stk = do
   let disp = Di.emptyDisplay
-  --st8  <- Ev.evaluateIO $ Se.State disp stk
-  let st8 = Ev.evaluate $ Se.State disp stk
+  --st8  <- Ev.evaluateIO 0 $ Se.State disp stk
+  st8  <- Ev.evaluateStepping $ Se.State disp stk
+  --let st8 = Ev.evaluate $ Se.State disp stk
   either youFail outputState st8
 
 outputStk :: Sk.Stack V.Value -> IO ()
@@ -37,8 +38,11 @@ main = do
   let disp  = Di.emptyDisplay
   --let ops   = "(4 5 6 + +)@"
   --let ops   = "0(9)(9~)(4!5#2+#@)@"
-  --let ops   = "3(3!3!1-2!1=()5!(4!5#2+#@)@3#*)3!4#3!@3#"
-  let ops = "36 4 $"
+  let c     = "(4!5#2+#@)"
+  let a     = "(3!3!1-2!1=()5!" ++ c ++ "@3#*)"
+  let ops   = "3" ++ a ++ "3!4#3!@3#"
+  --let ops   = "4 2 -"
+  --let ops = "36 4 $"
   let mbstk = Pa.parse ops
   --let stk  = Sk.Stack [V.CAdd, V.CAdd, V.CInteger 10, V.CInteger 5, V.CInteger 0]
   --let stk  = Sk.Stack [V.CAnd, V.CAnd, V.CInteger 2, V.CInteger 1, V.CInteger 1]
