@@ -133,7 +133,7 @@ terminated.
 If it hits an opening parenthesis, append it and continue parsing with increased
 depth.
 
-> stringParse d ('(':cs) stk = stringParse (d+1) cs $ appendToHead [toEnum $ fromEnum '('] stk
+> stringParse d ('(':cs) stk = stringParse (d+1) cs $ appendToHead (cToS8 '(') stk
 
 If the string parser hits a closing parenthesis, reduce the depth by one. If it
 is greater than zero, continue parsing the string; if it is zero, switch back to
@@ -142,7 +142,7 @@ the normal parser.
 > stringParse 1 (')':cs) stk = normalParse cs stk
 > stringParse d (')':cs) stk
 >   | d < 1     = Left "unexpected string parsing depth"
->   | otherwise = stringParse (d - 1) cs $ appendToHead [toEnum $ fromEnum ')'] stk
+>   | otherwise = stringParse (d - 1) cs $ appendToHead (cToS8 ')') stk
 
 Otherwise, append the character to the top-of-the-stack string.
 
@@ -156,3 +156,12 @@ The append-to-head operation looks as follows:
 
 > appendToHead :: [Word8] -> [V.Value] -> [V.Value]
 > appendToHead add ((V.CParen old):xs) = ((V.CParen (old ++ add)):xs)
+
+This helper function converts characters into single-element Word8 strings:
+
+> cToS8 :: Char -> [Word8]
+> cToS8 c
+>   | (ci > 255) = error "character out of range"
+>   | otherwise  = [toEnum $ fromEnum c]
+>   where
+>     ci = fromEnum c
