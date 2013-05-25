@@ -1,61 +1,135 @@
-\begin{code}
+This is where it all comes together... and it starts with imports.
 
-import Data.Word (Word8)
-import qualified CakeDisplay as Di
-import qualified CakeParser as Pa
-import qualified CakeStack as Sk
-import qualified CakeState as Se
-import qualified CakeValue as V
-import qualified CakeEvaluator as Ev
+> import Data.Word  ( Word8
+>                   )
+> import Data.Either.Unwrap  ( fromLeft
+>                            , fromRight
+>                            , isLeft
+>                            , isRight
+>                            )
+> import System.Environment  ( getArgs
+>                            , getProgName
+>                            )
+> import System.IO  ( Handle
+>                   , hIsEOF
+>                   , hIsTerminalDevice
+>                   , hFlush
+>                   , hGetLine
+>                   , hPutStrLn
+>                   , hPutStr
+>                   , stderr
+>                   , stdin
+>                   , stdout
+>                   )
+> import qualified CakeDisplay    as Di
+> import qualified CakeParser     as Pa
+> import qualified CakePrinter    as Pr
+> import qualified CakeStack      as Sk
+> import qualified CakeState      as Se
+> import qualified CakeValue      as V
+> import qualified CakeEvaluator  as Ev
+> import qualified RepeatState    as RS
 
-outputState :: Se.State -> IO ()
-outputState st8 = do
-  putStrLn $ Di.prettyFormatBox $ Se.display st8
-  putStrLn $ show $ Se.stack st8
+The \textit{main} function fetches and parses the command-line arguments and
+then enters the processing loop.
 
-evalStk :: Sk.Stack V.Value -> IO ()
-evalStk stk = do
-  let disp = Di.emptyDisplay
-  --st8  <- Ev.evaluateIO 0 $ Se.State disp stk
-  st8  <- Ev.evaluateStepping $ Se.State disp stk
-  --let st8 = Ev.evaluate $ Se.State disp stk
-  either youFail outputState st8
+> main :: IO ()
+> main = do
+>   args <- getArgs
+>   let evalState  =  if    "--step-by-step" `elem` args
+>                     then  evalStateSBS
+>                     else  evalStateDirect
+>   let showStack  = "--show-stack" `elem` args
+>   let display    = Di.emptyDisplay
+>   let stack      = (Sk.Stack [])
+>   if "--help" `elem` args
+>   then do
+>     outputUsage
+>   else do
+>     pl <- processingLoop evalState showStack stdin (Se.State display stack)
+>     return ()
 
-outputStk :: Sk.Stack V.Value -> IO ()
-outputStk stk = do
-  putStrLn $ show stk
+The processing loop reads reads a line from standard input, parses it, pushes
+the parsed stack onto the calculator's stack, then evaluates the latter.
+Finally, it outputs the calculator's display. The command-line option
+\verb|--step-by-step| will cause Cakeulator to pretty-print the stack before
+each evaluation; the \verb|--show-stack| option will pretty-print the stack
+along with the display after each line of input has been processed.
 
-youFail :: String -> IO ()
-youFail str = do
-  putStrLn str
+> processingLoop ::  (Se.State -> IO (Either String Se.State))
+>                    -> Bool -> Handle -> Se.State
+>                    -> IO (Either () ())
+> processingLoop evalState showStack inhdl st8 = do
+>   res <- processOne evalState showStack inhdl st8
+>   if RS.isRepeat res
+>   then
+>     processingLoop evalState showStack inhdl $ RS.fromRepeat res
+>   else if RS.isStop res
+>   then
+>     return $ Right ()
+>   else
+>     return $ Left ()
+>
+> processOne ::  (Se.State -> IO (Either String Se.State))
+>                -> Bool -> Handle -> Se.State
+>                -> IO (RS.RepeatState Se.State () ())
+> processOne evalState showStack inhdl st8 = do
+>   putStrLn $ Di.prettyFormatBox $ Se.display st8
+>   if showStack then do
+>     putStrLn $ Pr.prettyStack $ Se.stack st8
+>   else do
+>     return ()
+>   itd <- hIsTerminalDevice stdout
+>   if itd then do
+>     putStr "> "
+>     hFlush stdout
+>   else do
+>     return ()
+>   iseof <- hIsEOF inhdl
+>   if iseof
+>   then do
+>     return $ RS.Stop ()
+>   else do
+>     ln <- hGetLine inhdl
+>     let pres = Pa.parse ln
+>     if isLeft pres
+>     then do
+>       hPutStrLn stderr $ "error parsing input: " ++ fromLeft pres
+>       return $ RS.Failure ()
+>     else do
+>       let (Sk.Stack vs)  = fromRight pres
+>       let newstk         = Sk.multipush vs $ Se.stack st8
+>       let newst8         = Se.swizzleStack st8 newstk
+>       evalres <- evalState newst8
+>       if isLeft evalres
+>       then do
+>         hPutStrLn stderr $ "error evaluating: " ++ fromLeft evalres
+>         return $ RS.Failure ()
+>       else do
+>         return $ RS.Repeat $ fromRight evalres
 
-youWin :: (Show a) => a -> IO ()
-youWin x = do
-  putStrLn $ show x
+\textit{evalStateSBS} invokes \textit{evaluateStepping} to perform the
+step-by-step evaluation.
 
-main :: IO ()
-main = do
-  let disp  = Di.emptyDisplay
-  --let ops   = "(4 5 6 + +)@"
-  --let ops   = "0(9)(9~)(4!5#2+#@)@"
-  let c     = "(4!5#2+#@)"
-  let a     = "(3!3!1-2!1=()5!" ++ c ++ "@3#*)"
-  let ops   = "3" ++ a ++ "3!4#3!@3#"
-  --let ops   = "4 2 -"
-  --let ops = "36 4 $"
-  let mbstk = Pa.parse ops
-  --let stk  = Sk.Stack [V.CAdd, V.CAdd, V.CInteger 10, V.CInteger 5, V.CInteger 0]
-  --let stk  = Sk.Stack [V.CAnd, V.CAnd, V.CInteger 2, V.CInteger 1, V.CInteger 1]
-  either youFail evalStk mbstk
-  --either youFail outputStk mbstk
+> evalStateSBS :: Se.State -> IO (Either String Se.State)
+> evalStateSBS = Ev.evaluateStepping
 
-{-
-main :: IO ()
-main = do
-  let disp = Di.emptyDisplay
-  let expr = "4 5 6 + +"
-  let e1 = Ev.evaluateOne (V.CEval) disp (Sk.Stack [V.CParen [toEnum $ fromEnum x | x <- expr]])
-  either youFail youWin e1
--}
+\textit{evalStateDirect} invokes \textit{evaluate}, ignoring the handle and the
+I/O monad.
 
-\end{code}
+> evalStateDirect :: Se.State -> IO (Either String Se.State)
+> evalStateDirect st8 = return $ Ev.evaluate st8
+
+\textit{outputUsage} outputs information about Cakeulator's command-line
+parameters.
+
+> outputUsage :: IO ()
+> outputUsage = do
+>   progname <- getProgName
+>   hPutStr stderr $
+>     "Usage: " ++ progname ++ " OPTIONS\n" ++
+>     "  --step-by-step   Output the stack after every evaluation step.\n" ++
+>     "  --show-stack     Output the stack alongside the display after every\n" ++
+>     "                   evaluated line.\n" ++
+>     "\n" ++
+>     "Processing from files is currently not supported. Redirect stdin instead.\n"
