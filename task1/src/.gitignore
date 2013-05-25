@@ -1,0 +1,8 @@
+# LaTeX spam
+*.aux
+*.log
+*.pdf
+*.ptb
+
+# LaTeX output
+*.pdf
