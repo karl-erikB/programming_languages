@@ -1,30 +1,30 @@
 This module defines the types of values available to place onto the stack.
 
-> module CakeValue ( String8
->                  , Value ( CAdd
->                          , CAnd
->                          , CAppend
->                          , CChar
->                          , CCopy
->                          , CDelete
->                          , CDivide
->                          , CEqual
->                          , CEval
->                          , CGreaterThan
->                          , CInteger
->                          , CLessThan
->                          , CModulus
->                          , CMultiply
->                          , CNegate
->                          , COr
->                          , COutput
->                          , CParen
->                          , CSubtract
->                          )
->                  , isInteger
->                  , isParen
->                  , str8ToString
->                  ) where
+> module CakeValue  ( String8
+>                   , Value  ( CAdd
+>                            , CAnd
+>                            , CAppend
+>                            , CChar
+>                            , CCopy
+>                            , CDelete
+>                            , CDivide
+>                            , CEqual
+>                            , CEval
+>                            , CGreaterThan
+>                            , CInteger
+>                            , CLessThan
+>                            , CModulus
+>                            , CMultiply
+>                            , CNegate
+>                            , COr
+>                            , COutput
+>                            , CParen
+>                            , CSubtract
+>                            )
+>                   , isInteger
+>                   , isParen
+>                   , str8ToString
+>                   ) where
 
 > import Data.Word ( Word8 )
 
@@ -46,23 +46,27 @@ The following values are prescribed by the specification:
       may be nested.
 \item Binary arithmetic operators for addition, subtraction, multiplication,
       division and modulus (positive remainder).
-\item Binary logic operators: and, or.
+\item Binary logic operators: \textit{and}, \textit{or}.
 \item Binary relational operators for equality, less-than and greater-than.
 \item Unary arithmetic operators for integer negation.
-\item The copy operator (also known as “pick”), which pops n off the stack and
-      pushes the n-th element of the resulting stack.
-\item The delete operator (also known as “drop nth”), which pops n off the stack
-      and removes the n-th element of the resulting stack.
-\item The eval operator, which pops a parenthesized expression, parses it as
-      Cakeulator input, and places it on the stack to be evaluated next.
-\item The char operator, which pops an integer n and a parenthesized expression
-      (in either order) and pushes the ASCII code of the n-th character of the
-      parenthesized expression.
-\item The append operator, which pops an integer n and a parenthesized
+\item The \textit{copy} operator (also known as \textit{pick}), which pops
+      \textit n off the stack and pushes the \textit n-th element of the
+      original stack.
+\item The \textit{delete} operator (also known as \textit{drop nth}), which pops
+      \textit n off the stack and removes the \textit n-th element of the
+      resulting stack.
+\item The \textit{eval} operator, which pops a parenthesized expression, parses
+      it as Cakeulator input, and places it on the stack to be evaluated next.
+\item The \textit{char} operator, which pops an integer \textit n and a
+      parenthesized expression (in either order) and pushes the \textsc{ascii}
+      code of the \textit n-th character of the parenthesized expression.
+\item The append operator, which pops an integer \textit n and a parenthesized
       expression (in either order) and pushes a new parenthesized expression
-      equal to the previous one with the character with ASCII value n appended.
-\item The output operator, which first pops an integer p and then an integer c,
-      and places the character with ASCII value c to position p.
+      equal to the previous one with the character with \textsc{ascii} value
+      \textit n appended.
+\item The output operator, which first pops an integer \textit p and then an
+      integer \textit c, and places the character with \textsc{ascii} value
+      \textit c to position \textit p.
 \item The controlled input mode operator, which switches the parser into a mode
       where each line of input is pushed as a parenthesized expression onto the
       stack.
@@ -99,9 +103,9 @@ This makes the type definition rather long:
 Let's add few type-identification functions:
 
 > isInteger :: Value -> Bool
-> isInteger (CInteger _) = True
-> isInteger _            = False
+> isInteger  (CInteger _)  = True
+> isInteger  _             = False
 
 > isParen :: Value -> Bool
-> isParen (CParen _) = True
-> isParen _          = False
+> isParen  (CParen _)  = True
+> isParen  _           = False
