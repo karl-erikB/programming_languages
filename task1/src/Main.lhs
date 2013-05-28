@@ -2,15 +2,28 @@ This is where it all comes together... and it starts with imports.
 
 > import Data.Word  ( Word8
 >                   )
+> import Data.Maybe  ( fromJust
+>                    , isJust
+>                    )
 > import Data.Either.Unwrap  ( fromLeft
 >                            , fromRight
 >                            , isLeft
 >                            , isRight
 >                            )
+> import System.Console.GetOpt  ( OptDescr  ( Option )
+>                               , ArgDescr  ( NoArg
+>                                           , ReqArg
+>                                           , OptArg
+>                                           )
+>                               , ArgOrder  ( Permute )
+>                               , getOpt
+>                               , usageInfo
+>                               )
 > import System.Environment  ( getArgs
 >                            , getProgName
 >                            )
 > import System.IO  ( Handle
+>                   , IOMode  ( ReadMode )
 >                   , hIsEOF
 >                   , hIsTerminalDevice
 >                   , hFlush
@@ -20,7 +33,10 @@ This is where it all comes together... and it starts with imports.
 >                   , stderr
 >                   , stdin
 >                   , stdout
+>                   , withFile
 >                   )
+> import Control.Monad  ( when
+>                       )
 > import qualified CakeDisplay    as Di
 > import qualified CakeParser     as Pa
 > import qualified CakePrinter    as Pr
@@ -36,18 +52,56 @@ then enters the processing loop.
 > main :: IO ()
 > main = do
 >   args <- getArgs
->   let evalState  =  if    "--step-by-step" `elem` args
+>   let (trafos, posargs, errs) = getOpt Permute options args
+>   when (errs /= [])     $ ioError $ userError $ concat errs ++ usageInfo "Usage: cakeulator [OPTION...]" options
+>   when (posargs /= [])  $ ioError $ userError $ usageInfo "Usage: cakeulator [OPTION...]" options
+>   let opts       = foldl (flip id) defaultOptions trafos
+>   let evalState  =  if    cmdoptStepByStep opts
 >                     then  evalStateSBS
 >                     else  evalStateDirect
->   let showStack  = "--show-stack" `elem` args
+>   let showStack  = cmdoptShowStack opts
 >   let display    = Di.emptyDisplay
 >   let stack      = (Sk.Stack [])
->   if "--help" `elem` args
->   then do
->     outputUsage
->   else do
->     pl <- processingLoop evalState showStack stdin (Se.State display stack)
+>   if    isJust $ cmdoptBootstrapFile opts
+>   then  do
+>     let bfn      = fromJust $ cmdoptBootstrapFile opts
+>     bs <- performBootstrap evalState showStack bfn (Se.State display stack)
+>     if isRight bs
+>     then do
+>       processingLoop evalState showStack stdin (fromRight bs)
+>       return ()
+>     else do
+>       return ()
+>   else  do
+>     processingLoop evalState showStack stdin (Se.State display stack)
 >     return ()
+
+The command-line arguments are parsed using Haskell's \textit{GetOpt} support.
+
+> data CmdlineOptions = CmdlineOptions
+>   { cmdoptStepByStep     :: Bool
+>   , cmdoptShowStack      :: Bool
+>   , cmdoptBootstrapFile  :: Maybe String
+>   } deriving (Show, Eq)
+>
+> defaultOptions = CmdlineOptions
+>   { cmdoptStepByStep     = False
+>   , cmdoptShowStack      = False
+>   , cmdoptBootstrapFile  = Nothing
+>   }
+>
+> options :: [OptDescr (CmdlineOptions -> CmdlineOptions)]
+> options =
+>   [ Option  ['t'] ["step-by-step"]
+>       (NoArg   (\os    -> os { cmdoptStepByStep     = True }))
+>       "output the stack after every evaluation step"
+>   , Option  ['s'] ["show-stack"]
+>       (NoArg   (\os    -> os { cmdoptShowStack      = True }))
+>       "output the stack alongside the display after every evaluated line"
+>   , Option  ['b'] ["bootstrap"]
+>       (ReqArg  (\f os  -> os { cmdoptBootstrapFile  = Just f }) "FILE")
+>       "file to execute before loading UI or executing input"
+>   ]
 
 The processing loop reads reads a line from standard input, parses it, pushes
 the parsed stack onto the calculator's stack, then evaluates the latter.
@@ -58,7 +112,7 @@ along with the display after each line of input has been processed.
 
 > processingLoop ::  (Se.State -> IO (Either String Se.State))
 >                    -> Bool -> Handle -> Se.State
->                    -> IO (Either () ())
+>                    -> IO (Either () Se.State)
 > processingLoop evalState showStack inhdl st8 = do
 >   res <- processOne evalState showStack inhdl st8
 >   if RS.isRepeat res
@@ -66,20 +120,20 @@ along with the display after each line of input has been processed.
 >     processingLoop evalState showStack inhdl $ RS.fromRepeat res
 >   else if RS.isStop res
 >   then
->     return $ Right ()
+>     return $ Right $ RS.fromStop res
 >   else
 >     return $ Left ()
 >
 > processOne ::  (Se.State -> IO (Either String Se.State))
 >                -> Bool -> Handle -> Se.State
->                -> IO (RS.RepeatState Se.State () ())
+>                -> IO (RS.RepeatState Se.State Se.State ())
 > processOne evalState showStack inhdl st8 = do
 >   putStrLn $ Di.prettyFormatBox $ Se.display st8
 >   if showStack then do
 >     putStrLn $ Pr.prettyStack $ Se.stack st8
 >   else do
 >     return ()
->   itd <- hIsTerminalDevice stdout
+>   itd <- hIsTerminalDevice inhdl
 >   if itd then do
 >     putStr "> "
 >     hFlush stdout
@@ -88,7 +142,7 @@ along with the display after each line of input has been processed.
 >   iseof <- hIsEOF inhdl
 >   if iseof
 >   then do
->     return $ RS.Stop ()
+>     return $ RS.Stop st8
 >   else do
 >     ln <- hGetLine inhdl
 >     let pres = Pa.parse ln
@@ -107,6 +161,16 @@ along with the display after each line of input has been processed.
 >         return $ RS.Failure ()
 >       else do
 >         return $ RS.Repeat $ fromRight evalres
+
+Bootstrapping opens the file and executes the commands within.
+
+> performBootstrap ::  (Se.State -> IO (Either String Se.State))
+>                      -> Bool -> String -> Se.State
+>                      -> IO (Either () Se.State)
+> performBootstrap evalState showStack bsfn st8 = do
+>   withFile bsfn ReadMode (\bsh -> do
+>       processingLoop evalState showStack bsh st8
+>     )
 
 \textit{evalStateSBS} invokes \textit{evaluateStepping} to perform the
 step-by-step evaluation.
