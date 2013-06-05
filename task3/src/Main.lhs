@@ -39,7 +39,7 @@ Main
 >   when (posargs /= [])  $ ioError $ userError $ usageInfo usage options
 >   let opts       = foldl (flip id) defaultOptions trafos
 >   do db <- readDatabase
->      hPutStrLn stdout $ show db
+>      hPutStrLn stdout $ printDatabase db
 >      return()
 
 A quick wrapper for loading our database file. In particular, it's needed because
