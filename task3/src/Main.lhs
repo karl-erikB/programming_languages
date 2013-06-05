@@ -72,7 +72,7 @@ and return a string to print as well as the possibly modified database.
 > processCommand db cmd =
 >   case cmds !! 0 of
 >   "print"              -> (printDatabase db, db)
->   "reserve"            -> undefined -- TODO
+>   "reserve"            -> addReservation db cmds
 >   "delreserve"         -> undefined -- TODO
 >   "minfreemaxreserved" -> undefined -- TODO
 >   "seatreservations"   -> undefined -- TODO

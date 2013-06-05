@@ -1,14 +1,18 @@
 > module Database ( Database ( Database )
 >                 , printDatabase
+>                 , addReservation
 >                 ) where
 
+> import Data.List ( nub )
+> import Data.Maybe
+
 > import Route
-> import Reservation
+> import qualified Reservation as Re
 > import Station
 > import Train
 
 > data Database = Database { route        :: [ Route ]
->                          , reservations :: [ Reservation ]
+>                          , reservations :: [ Re.Reservation ]
 >                          }
 >       deriving (Show, Read)
 
@@ -32,3 +36,24 @@
 > printTrains :: [ Train ] -> String
 > printTrains (t:ts) = show t ++ "\n" ++ printTrains ts
 > printTrains _      = ""
+
+Adds a reservation (if possible).
+Args contains the train name, source and destination stations, and the number
+of requested seats.
+
+> addReservation :: Database -> [ String ] -> (String, Database)
+> addReservation db args = if valid then undefined else ("Invalid argument", db)
+>   where count    :: Integer
+>         count    = read $ args !! 4
+>         trains   = allTrains db
+>         stations = allStations db
+>         train    = trainByName trains $ args !! 1
+>         from     = stationByName stations $ args !! 2
+>         to       = stationByName stations $ args !! 3
+>         valid    = all isJust [ from, to ] && isJust train
+
+> allTrains :: Database -> [ Train ]
+> allTrains = concat . (map trains) . route
+
+> allStations :: Database -> [ Station ]
+> allStations = nub . concat . (map stations) . route
