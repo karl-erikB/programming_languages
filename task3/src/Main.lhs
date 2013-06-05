@@ -1,4 +1,7 @@
 > import Control.Monad  ( when )
+> import System.Directory ( copyFile
+>                         , removeFile
+>                         )
 > import System.IO ( hGetLine
 >                  , hIsEOF
 >                  , hPutStrLn
@@ -28,7 +31,11 @@ we need to specify the type of the returned variable.
 Likewise, write the specified database into our db file.
 
 > writeDatabase :: Database -> IO ()
-> writeDatabase db = writeFile dbFile $ show db
+> writeDatabase db = do
+>   writeFile tmpFile $ show db
+>   copyFile tmpFile dbFile
+>   removeFile tmpFile
+>   where tmpFile = '_' : dbFile
 
 > mainLoop :: Database -> IO Database
 > mainLoop db = do
