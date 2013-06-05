@@ -20,7 +20,7 @@ The file used to persist and load our Database instances.
 
 Our helpful usage message.
 
-> usage = "Usage: PlaceAppNameHere [OPTION...]"
+> usage = "Usage: TheCakeIsALie [OPTION...]"
 
 Main
 
