@@ -44,5 +44,16 @@ Likewise, write the specified database into our db file.
 >           return db
 >       else do
 >           ln <- hGetLine stdin
->           hPutStrLn stdout $ printDatabase db
->           return db
+>           let (output, dirtyDb) = processCommand db ln
+>           hPutStrLn stdout output
+>           return dirtyDb
+
+Given a database and some input command, we process the given command
+and return a string to print as well as the possibly modified database.
+
+> processCommand :: Database -> String -> (String, Database)
+> processCommand db cmd =
+>   case cmds !! 0 of
+>   "print"   -> (printDatabase db, db)
+>   otherwise -> ("Invalid command", db)
+>   where cmds = words cmd
