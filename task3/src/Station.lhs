@@ -7,7 +7,5 @@ useful functions.
 
 A station consists of a code and its name.
 
-> data Station = Station { code :: String
->                        , name :: String
->                        } 
+> data Station = Station { name :: String } 
 >       deriving (Eq, Show, Read)
