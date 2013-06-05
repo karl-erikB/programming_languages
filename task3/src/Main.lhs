@@ -53,6 +53,18 @@ Likewise, write the specified database into our db file.
 >                       hPutStrLn stdout output
 >                       mainLoop dirtyDb
 
+> usage :: String
+> usage = "Usage:\n" ++ concat [ "    " ++ line ++ "\n" | line <- lines ]
+>   where lines =
+>           [ "print"
+>           , "reserve train from to count"
+>           , "delreserve id"
+>           , "minfreemaxreserved from to"
+>           , "seatreservations train seat"
+>           , "maxgroupsize from to"
+>           , "quit"
+>           ]
+
 Given a database and some input command, we process the given command
 and return a string to print as well as the possibly modified database.
 
@@ -60,5 +72,5 @@ and return a string to print as well as the possibly modified database.
 > processCommand db cmd =
 >   case cmds !! 0 of
 >   "print"   -> (printDatabase db, db)
->   otherwise -> ("Invalid command", db)
+>   otherwise -> (usage, db)
 >   where cmds = words cmd
