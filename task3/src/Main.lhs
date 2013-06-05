@@ -16,7 +16,7 @@
 
 The file used to persist and load our Database instances.
 
-> db = "db"
+> dbFile = "db"
 
 Our helpful usage message.
 
@@ -40,14 +40,20 @@ Main
 >   let opts       = foldl (flip id) defaultOptions trafos
 >   do db <- readDatabase
 >      hPutStrLn stdout $ printDatabase db
->      return()
+>      writeDatabase db
+>      return ()
 
 A quick wrapper for loading our database file. In particular, it's needed because
 we need to specify the type of the returned variable.
 
 > readDatabase :: IO Database
-> readDatabase = do s <- readFile db
+> readDatabase = do s <- readFile dbFile
 >                   return (read s)
+
+Likewise, write the specified database into our db file.
+
+> writeDatabase :: Database -> IO ()
+> writeDatabase db = writeFile dbFile $ show db
 
 Command line argument handling courtesy of GetOpt and copied from Ondra's implementation
 of task 1.
