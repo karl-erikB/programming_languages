@@ -40,13 +40,18 @@ Likewise, write the specified database into our db file.
 > mainLoop :: Database -> IO Database
 > mainLoop db = do
 >       iseof <- hIsEOF stdin
->       if iseof then do
->           return db
->       else do
->           ln <- hGetLine stdin
->           let (output, dirtyDb) = processCommand db ln
->           hPutStrLn stdout output
->           return dirtyDb
+>       if iseof
+>           then do
+>               return db
+>           else do
+>               ln <- hGetLine stdin
+>               if ln == "quit"
+>                   then do
+>                       return db
+>                   else do
+>                       let (output, dirtyDb) = processCommand db ln
+>                       hPutStrLn stdout output
+>                       mainLoop dirtyDb
 
 Given a database and some input command, we process the given command
 and return a string to print as well as the possibly modified database.
