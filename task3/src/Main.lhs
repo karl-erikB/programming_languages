@@ -71,6 +71,11 @@ and return a string to print as well as the possibly modified database.
 > processCommand :: Database -> String -> (String, Database)
 > processCommand db cmd =
 >   case cmds !! 0 of
->   "print"   -> (printDatabase db, db)
->   otherwise -> (usage, db)
+>   "print"              -> (printDatabase db, db)
+>   "reserve"            -> undefined -- TODO
+>   "delreserve"         -> undefined -- TODO
+>   "minfreemaxreserved" -> undefined -- TODO
+>   "seatreservations"   -> undefined -- TODO
+>   "maxgroupsize"       -> undefined -- TODO
+>   otherwise            -> (usage, db)
 >   where cmds = words cmd
