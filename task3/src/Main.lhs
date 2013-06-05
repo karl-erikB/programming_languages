@@ -31,6 +31,9 @@ Main
 \item Persists the (possibly changed) database.
 \end{itemize}
 
+TODO: Change main to handle commands as they arrive from stdin
+instead of depending on command line options.
+
 > main :: IO ()
 > main = do
 >   args <- getArgs
