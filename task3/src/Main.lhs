@@ -14,7 +14,7 @@
 >                  )
 > import Database
 
-> usage = "Usage: Figure it out yourself damnit"
+> usage = "Usage: PlaceAppNameHere [OPTION...]"
 
 > main :: IO ()
 > main = do
