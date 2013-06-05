@@ -6,7 +6,8 @@
 >                    }
 >       deriving (Show, Read)
 
-> data Train = Train { wagons :: [ Wagon ]
+> data Train = Train { name :: String
+>                    , wagons :: [ Wagon ]
 >                    , minimumFreeSeats :: Integer
 >                    }
 >       deriving (Show, Read)
