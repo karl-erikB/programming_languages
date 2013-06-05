@@ -14,7 +14,22 @@
 >                  )
 > import Database
 
+The file used to persist and load our Database instances.
+
+> db = "db"
+
+Our helpful usage message.
+
 > usage = "Usage: PlaceAppNameHere [OPTION...]"
+
+Main
+
+\begin{itemize}
+\item Loads the database,
+\item Parses all command line arguments,
+\item Performs the selected action, and
+\item Persists the (possibly changed) database.
+\end{itemize}
 
 > main :: IO ()
 > main = do
@@ -27,9 +42,15 @@
 >      hPutStrLn stdout $ show db
 >      return()
 
+A quick wrapper for loading our database file. In particular, it's needed because
+we need to specify the type of the returned variable.
+
 > readDatabase :: IO Database
-> readDatabase = do s <- readFile "db"
+> readDatabase = do s <- readFile db
 >                   return (read s)
+
+Command line argument handling courtesy of GetOpt and copied from Ondra's implementation
+of task 1.
 
 > data CmdlineOptions = CmdlineOptions
 >   { cmdoptPrint          :: Bool
@@ -40,7 +61,7 @@
 >   { cmdoptPrint          = False
 >   , cmdoptBootstrapFile  = Nothing
 >   }
-
+>
 > options :: [OptDescr (CmdlineOptions -> CmdlineOptions)]
 > options =
 >   [ Option  ['p'] ["print"]
