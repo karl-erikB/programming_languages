@@ -4,8 +4,10 @@ A route consists of several stations.
 >              , stations
 >              , trains
 >              , hubs
+>              , routeByTrainAndWaypoints
 >              ) where
 
+> import Data.Maybe
 > import Data.List ( nub
 >                  , intersect
 >                  )
@@ -26,3 +28,8 @@ Hubs are stations which are present in more then one route.
 >   where hubs' (r:rs) = [ intersect (stations r) (stations r') | r' <- rs ] ++ hubs' rs
 >         hubs' _      = []
 
+> routeByTrainAndWaypoints :: [ Route ] -> Train -> Station -> Station -> Maybe Route
+> routeByTrainAndWaypoints rs t src dst = listToMaybe $ filter routeMatches rs
+>   where routeMatches r = t `elem` (trains r) &&
+>                          src `elem` (stations r) &&
+>                          dst `elem` (stations r) 

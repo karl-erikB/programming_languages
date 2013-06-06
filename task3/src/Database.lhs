@@ -11,7 +11,7 @@
 > import Station
 > import Train
 
-> data Database = Database { route        :: [ Route ]
+> data Database = Database { routes       :: [ Route ]
 >                          , reservations :: [ Re.Reservation ]
 >                          }
 >       deriving (Show, Read)
@@ -39,10 +39,11 @@
 
 Adds a reservation (if possible).
 Args contains the train name, source and destination stations, and the number
-of requested seats.
+of requested seats. Performs initial lookups and parsing of incoming string
+parameters.
 
 > addReservation :: Database -> [ String ] -> (String, Database)
-> addReservation db args = if valid then undefined else ("Invalid argument", db)
+> addReservation db args = addReservation' db train from to count
 >   where count    :: Integer
 >         count    = read $ args !! 4
 >         trains   = allTrains db
@@ -50,10 +51,24 @@ of requested seats.
 >         train    = trainByName trains $ args !! 1
 >         from     = stationByName stations $ args !! 2
 >         to       = stationByName stations $ args !! 3
->         valid    = all isJust [ from, to ] && isJust train
+
+> addReservation' :: Database -> Maybe Train -> Maybe Station -> Maybe Station
+>                             -> Integer -> (String, Database)
+> addReservation' db (Just t) (Just src) (Just dst) cnt
+>   | cnt <= 0    = ("Count must be strictly positive", db)
+>   | isNothing r = ("Reservation is not possible", db)
+>   | otherwise   = ("Reservation placed successfully", dirtyDb)
+>   where route   = routeByTrainAndWaypoints (routes db) t src dst
+>         reserv  = Re.reservationsForTrain (reservations db) t
+>         r       = Re.reserveSeats t reserv cnt
+>         dirtyDb = Database (routes db) ((fromJust r):(reservations db))
+
+If any of the incoming arguments are Nothing, return an error message.
+
+> addReservation' db _ _ _ _ = ("Invalid argument", db)
 
 > allTrains :: Database -> [ Train ]
-> allTrains = concat . (map trains) . route
+> allTrains = concat . (map trains) . routes
 
 > allStations :: Database -> [ Station ]
-> allStations = nub . concat . (map stations) . route
+> allStations = nub . concat . (map stations) . routes
