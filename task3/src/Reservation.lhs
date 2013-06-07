@@ -2,7 +2,9 @@
 >                    , reserveSeats
 >                    ) where
 
-> import Data.List ( intersect )
+> import Data.List ( intersect
+>                  , (\\)
+>                  )
 
 > import Route
 > import Station
@@ -66,6 +68,9 @@ i: the starting seat number of this wagon
 > reserveSeats' rs (w:ws) n i
 >       | hasSpace  = seatList
 >       | otherwise = reserveSeats' rs ws n (i + T.seats w)
->   where hasSpace = undefined
->         seatList = undefined
+>   where allSeats      = [i .. i + T.seats w]
+>         reservedSeats = map toInteger $ concat $ map (\r -> seats r) rs
+>         availSeats    = allSeats \\ reservedSeats
+>         hasSpace      = undefined
+>         seatList      = undefined
 > reserveSeats' _ _ _ _ = []
