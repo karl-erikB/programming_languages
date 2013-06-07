@@ -29,5 +29,5 @@ and continue sequentially throughout the entire train), and determine reserved s
 
 >       | otherwise = Just $ Reservation newId t r src dst [1,2,3,4,5]
 >   where minFreeSeatsExceeded = ((trainCapacity t) - filledSeats) < (minimumFreeSeats t)
->         filledSeats          = foldr (\res sum -> sum + (fromIntegral $ length $ seats res)) 0 rs
+>         filledSeats          = fromIntegral $ sum [ length $ seats res | res <- rs ]
 >         newId                = 1 + maximum [ resid res  | res <- rs ]

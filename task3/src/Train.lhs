@@ -21,5 +21,4 @@
 > trainByName ts n = listToMaybe $ filter (\t -> name t == n) ts
 
 > trainCapacity :: Train -> Integer
-> trainCapacity t = trainCapacity' $ wagons t
->   where trainCapacity' = foldr (\w sum -> sum + seats w) 0
+> trainCapacity t = sum [ seats w | w <- wagons t ]
