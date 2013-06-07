@@ -48,7 +48,7 @@ whether enough space is left to complete the reservation.
 >       | minFreeSeatsExceeded = Nothing
 >       | null bookedSeats     = Nothing
 >       | otherwise            = Just $ Reservation newId t r src dst bookedSeats
->   where newId                = 1 + maximum [ resid res  | res <- rs ]
+>   where newId                = 1 + maximum (0:[ resid res  | res <- rs ])
 >         applicableRs         = reservationsForTrainAndSegment rs (r, t, src, dst)
 >         filledSeats          = fromIntegral $ sum [ length $ seats res | res <- applicableRs ]
 >         minFreeSeatsExceeded = ((trainCapacity t) - filledSeats) < (minimumFreeSeats t)
