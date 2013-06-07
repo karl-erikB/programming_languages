@@ -43,30 +43,30 @@ of requested seats. Performs initial lookups and parsing of incoming string
 parameters.
 
 > addReservation :: Database -> [ String ] -> (String, Database)
-> addReservation db args = addReservation' db train from to count
+> addReservation db args
+>       | count <= 0      = ("Count must be strictly positive", db)
+>       | isNothing train = ("Train not found", db)
+>       | isNothing src   = ("Source station not found", db)
+>       | isNothing dst   = ("Destination station not found", db)
+>       | isNothing route = ("Route not found", db)
+>       | isNothing r     = ("Reservation is not possible", db)
+>       | otherwise       = ("Reservation placed successfully", dirtyDb)
 >   where count    :: Integer
 >         count    = read $ args !! 4
 >         trains   = allTrains db
 >         stations = allStations db
 >         train    = trainByName trains $ args !! 1
->         from     = stationByName stations $ args !! 2
->         to       = stationByName stations $ args !! 3
-
-> addReservation' :: Database -> Maybe Train -> Maybe Station -> Maybe Station
->                             -> Integer -> (String, Database)
-> addReservation' db (Just t) (Just src) (Just dst) cnt
->   | cnt <= 0    = ("Count must be strictly positive", db)
->   | isNothing route = ("Route not found", db)
->   | isNothing r = ("Reservation is not possible", db)
->   | otherwise   = ("Reservation placed successfully", dirtyDb)
->   where route   = routeByTrainAndWaypoints (routes db) t src dst
->         reserv  = Re.reservationsForTrain (reservations db) t
->         r       = Re.reserveSeats (fromJust route, t, src, dst) reserv cnt
->         dirtyDb = Database (routes db) ((fromJust r):(reservations db))
-
-If any of the incoming arguments are Nothing, return an error message.
-
-> addReservation' db _ _ _ _ = ("Invalid argument", db)
+>         train'   = fromJust train
+>         src      = stationByName stations $ args !! 2
+>         src'     = fromJust src
+>         dst      = stationByName stations $ args !! 3
+>         dst'     = fromJust dst
+>         route    = routeByTrainAndWaypoints (routes db) train' src' dst'
+>         route'   = fromJust route
+>         reservs  = Re.reservationsForTrain (reservations db) train'
+>         r        = Re.reserveSeats (route', train', src', dst') reservs count
+>         r'       = fromJust r
+>         dirtyDb  = Database (routes db) (r':(reservations db))
 
 > allTrains :: Database -> [ Train ]
 > allTrains = concat . (map trains) . routes
