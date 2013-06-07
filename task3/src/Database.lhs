@@ -50,7 +50,7 @@ parameters.
 >       | isNothing dst   = ("Destination station not found", db)
 >       | isNothing route = ("Route not found", db)
 >       | isNothing r     = ("Reservation is not possible", db)
->       | otherwise       = ("Reservation placed successfully", dirtyDb)
+>       | otherwise       = ("Reservation placed successfully", appendReservation db r')
 >   where count    :: Integer
 >         count    = read $ args !! 4
 >         trains   = allTrains db
@@ -66,7 +66,9 @@ parameters.
 >         reservs  = Re.reservationsForTrain (reservations db) train'
 >         r        = Re.reserveSeats (route', train', src', dst') reservs count
 >         r'       = fromJust r
->         dirtyDb  = Database (routes db) (r':(reservations db))
+
+> appendReservation :: Database -> Re.Reservation -> Database
+> appendReservation (Database routes' reservations') r = Database routes' (r:reservations')
 
 > allTrains :: Database -> [ Train ]
 > allTrains = concat . (map trains) . routes
