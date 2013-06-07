@@ -56,11 +56,12 @@ parameters.
 >                             -> Integer -> (String, Database)
 > addReservation' db (Just t) (Just src) (Just dst) cnt
 >   | cnt <= 0    = ("Count must be strictly positive", db)
+>   | isNothing route = ("Route not found", db)
 >   | isNothing r = ("Reservation is not possible", db)
 >   | otherwise   = ("Reservation placed successfully", dirtyDb)
 >   where route   = routeByTrainAndWaypoints (routes db) t src dst
 >         reserv  = Re.reservationsForTrain (reservations db) t
->         r       = Re.reserveSeats t reserv cnt
+>         r       = Re.reserveSeats (fromJust route, t, src, dst) reserv cnt
 >         dirtyDb = Database (routes db) ((fromJust r):(reservations db))
 
 If any of the incoming arguments are Nothing, return an error message.
