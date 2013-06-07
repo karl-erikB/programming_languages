@@ -1,5 +1,4 @@
 > module Reservation ( Reservation ( Reservation )
->                    , reservationsForTrain
 >                    , reserveSeats
 >                    ) where
 
@@ -16,21 +15,21 @@
 >                                }
 >       deriving (Show, Read)
 
-> reservationsForTrain :: [ Reservation ] -> Train -> [ Reservation ]
-> reservationsForTrain rs t = filter (\r -> train r == t) rs
+Retrieves all reservations applicable to the given route segment on the given train.
+
+> reservationsForTrainAndSegment :: [ Reservation ] -> (Route, Train, Station, Station) -> [ Reservation ]
+> reservationsForTrainAndSegment rs (r, t, src, dst) = filter (\r -> train r == t) rs
 
 At this point, we can be sure that the requested route exists and we only need to check
-whether enough space is left to complete the reservation. rs only contains Reservations applicable
-to the current train.
+whether enough space is left to complete the reservation.
 
-> reserveSeats :: (Route, Train, Station, Station) -> [ Reservation ] -> Integer -> Maybe Reservation
-> reserveSeats (r, t, src, dst) rs n
+> reserveSeats :: [ Reservation ] -> (Route, Train, Station, Station) -> Integer -> Maybe Reservation
+> reserveSeats rs (r, t, src, dst) n
 >       | minFreeSeatsExceeded = Nothing
-
-TODO: Fetch new id, check if seats are possible (seats start at 0 in the first wagon,
-and continue sequentially throughout the entire train), and determine reserved seats.
-
->       | otherwise = Just $ Reservation newId t r src dst [1,2,3,4,5]
->   where minFreeSeatsExceeded = ((trainCapacity t) - filledSeats) < (minimumFreeSeats t)
->         filledSeats          = fromIntegral $ sum [ length $ seats res | res <- rs ]
->         newId                = 1 + maximum [ resid res  | res <- rs ]
+>       | null bookedSeats     = Nothing
+>       | otherwise            = Just $ Reservation newId t r src dst bookedSeats
+>   where newId                = 1 + maximum [ resid res  | res <- rs ]
+>         applicableRs         = reservationsForTrainAndSegment rs (r, t, src, dst)
+>         filledSeats          = fromIntegral $ sum [ length $ seats res | res <- applicableRs ]
+>         minFreeSeatsExceeded = ((trainCapacity t) - filledSeats) < (minimumFreeSeats t)
+>         bookedSeats          = undefined

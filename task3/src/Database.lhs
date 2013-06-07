@@ -63,8 +63,7 @@ parameters.
 >         dst'     = fromJust dst
 >         route    = routeByTrainAndWaypoints (routes db) train' src' dst'
 >         route'   = fromJust route
->         reservs  = Re.reservationsForTrain (reservations db) train'
->         r        = Re.reserveSeats (route', train', src', dst') reservs count
+>         r        = Re.reserveSeats (reservations db) (route', train', src', dst') count
 >         r'       = fromJust r
 
 > appendReservation :: Database -> Re.Reservation -> Database
