@@ -4,7 +4,7 @@
 > import Station
 > import Train
 
-> data Reservation = Reservation { id    :: Int
+> data Reservation = Reservation { resid :: Int
 >                                , train :: Train
 >                                , route :: Route
 >                                , from  :: Station
@@ -27,6 +27,7 @@ to the current train.
 TODO: Fetch new id, check if seats are possible (seats start at 0 in the first wagon,
 and continue sequentially throughout the entire train), and determine reserved seats.
 
->       | otherwise = Just $ Reservation 0 t r src dst [1,2,3,4,5]
+>       | otherwise = Just $ Reservation newId t r src dst [1,2,3,4,5]
 >   where minFreeSeatsExceeded = ((trainCapacity t) - filledSeats) < (minimumFreeSeats t)
 >         filledSeats          = foldr (\res sum -> sum + (fromIntegral $ length $ seats res)) 0 rs
+>         newId                = 1 + maximum [ resid res  | res <- rs ]
