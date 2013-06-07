@@ -53,3 +53,6 @@ whether enough space is left to complete the reservation.
 >         filledSeats          = fromIntegral $ sum [ length $ seats res | res <- applicableRs ]
 >         minFreeSeatsExceeded = ((trainCapacity t) - filledSeats) < (minimumFreeSeats t)
 >         bookedSeats          = undefined
+
+TODO: We're almost done with all checks. We still need to find some place in the train that has
+n contiguous seats available and return these.
