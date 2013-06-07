@@ -1,8 +1,10 @@
 > module Train ( Train ( Train )
 >              , Wagon ( Wagon )
 >              , minimumFreeSeats
+>              , seats
 >              , trainByName
 >              , trainCapacity
+>              , wagons
 >              ) where
 
 > import Data.Maybe

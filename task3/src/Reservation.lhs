@@ -6,10 +6,10 @@
 
 > import Route
 > import Station
-> import Train
+> import qualified Train as T
 
 > data Reservation = Reservation { resid :: Int
->                                , train :: Train
+>                                , train :: T.Train
 >                                , route :: Route
 >                                , from  :: Station
 >                                , to    :: Station
@@ -20,7 +20,7 @@
 Retrieves all reservations applicable to the given route segment on the given train.
 Note that applicable in this case is defined as including the station.
 
-> reservationsForTrainAndSegment :: [ Reservation ] -> (Route, Train, Station, Station) -> [ Reservation ]
+> reservationsForTrainAndSegment :: [ Reservation ] -> (Route, T.Train, Station, Station) -> [ Reservation ]
 > reservationsForTrainAndSegment rs (r, t, src, dst) = bySegment
 
 First, discard all reservations that aren't made for this train.
@@ -43,7 +43,7 @@ Given a list containing a followed by b, returns a list containing all elements
 At this point, we can be sure that the requested route exists and we only need to check
 whether enough space is left to complete the reservation.
 
-> reserveSeats :: [ Reservation ] -> (Route, Train, Station, Station) -> Integer -> Maybe Reservation
+> reserveSeats :: [ Reservation ] -> (Route, T.Train, Station, Station) -> Integer -> Maybe Reservation
 > reserveSeats rs (r, t, src, dst) n
 >       | minFreeSeatsExceeded = Nothing
 >       | null bookedSeats     = Nothing
@@ -51,8 +51,21 @@ whether enough space is left to complete the reservation.
 >   where newId                = 1 + maximum (0:[ resid res  | res <- rs ])
 >         applicableRs         = reservationsForTrainAndSegment rs (r, t, src, dst)
 >         filledSeats          = fromIntegral $ sum [ length $ seats res | res <- applicableRs ]
->         minFreeSeatsExceeded = ((trainCapacity t) - filledSeats) < (minimumFreeSeats t)
->         bookedSeats          = undefined
+>         minFreeSeatsExceeded = ((T.trainCapacity t) - filledSeats) < (T.minimumFreeSeats t)
+>         bookedSeats          = reserveSeats' applicableRs (T.wagons t) n 0
 
-TODO: We're almost done with all checks. We still need to find some place in the train that has
-n contiguous seats available and return these.
+We're almost done with all checks. We still need to find some place in the
+train that has n contiguous seats available and return these.
+
+rs: all applicable reservations
+(w:ws) the remaining wagons
+n: the desired count of seats
+i: the starting seat number of this wagon
+
+> reserveSeats' :: [ Reservation ] -> [ T.Wagon ] -> Integer -> Integer -> [ Int ]
+> reserveSeats' rs (w:ws) n i
+>       | hasSpace  = seatList
+>       | otherwise = reserveSeats' rs ws n (i + T.seats w)
+>   where hasSpace = undefined
+>         seatList = undefined
+> reserveSeats' _ _ _ _ = []
