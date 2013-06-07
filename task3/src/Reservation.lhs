@@ -1,4 +1,7 @@
-> module Reservation where
+> module Reservation ( Reservation ( Reservation )
+>                    , reservationsForTrain
+>                    , reserveSeats
+>                    ) where
 
 > import Route
 > import Station
