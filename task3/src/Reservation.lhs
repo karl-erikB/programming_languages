@@ -2,6 +2,7 @@
 >                    , printReservation
 >                    , reserveSeats
 >                    , reservationsByTrainAndSeat
+>                    , reservationsById
 >                    ) where
 
 > import Data.List ( intersect
@@ -19,7 +20,7 @@
 >                                , to    :: Station
 >                                , seats :: [ Int ]
 >                                }
->       deriving (Show, Read)
+>       deriving (Eq, Show, Read)
 
 > printReservation :: Reservation -> String
 > printReservation (Reservation i tr ro src dst se)
@@ -33,6 +34,11 @@ Retrieves all reservations applicable to the given seat in a given train.
 > reservationsByTrainAndSeat :: [ Reservation ] -> T.Train -> Int -> [ Reservation ]
 > reservationsByTrainAndSeat rs t s = filter (\r -> s `elem` (seats r)) byTrain'
 >   where byTrain' = byTrain rs t
+
+Retrieves all reservations by id.
+
+> reservationsById :: [ Reservation ] -> Integer -> [ Reservation ]
+> reservationsById rs i = filter (\r -> i == (toInteger $ resid r)) rs
 
 Retrieves all reservations applicable to the given route segment on the given train.
 Note that applicable in this case is defined as including the station.

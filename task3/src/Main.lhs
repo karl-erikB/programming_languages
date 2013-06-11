@@ -73,7 +73,7 @@ and return a string to print as well as the possibly modified database.
 >   case cmds !! 0 of
 >   "print"              -> (printDatabase db, db)
 >   "reserve"            -> addReservation db cmds
->   "delreserve"         -> undefined -- TODO
+>   "delreserve"         -> delReservation db cmds
 >   "minfreemaxreserved" -> undefined -- TODO
 >   "seatreservations"   -> (printReservations db cmds, db)
 >   "maxgroupsize"       -> undefined -- TODO

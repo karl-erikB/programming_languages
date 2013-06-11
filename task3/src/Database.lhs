@@ -2,9 +2,12 @@
 >                 , printDatabase
 >                 , printReservations
 >                 , addReservation
+>                 , delReservation
 >                 ) where
 
-> import Data.List ( nub )
+> import Data.List ( (\\)
+>                  , nub
+>                  )
 > import Data.Maybe
 
 > import Route
@@ -57,6 +60,21 @@ Displays all reservation for the given seat in the given train.
 > printReservations' :: [ Re.Reservation ] -> String
 > printReservations' (r:rs) = Re.printReservation r ++ "\n" ++ printReservations' rs
 > printReservations' _      = ""
+
+Deletes a reservation if it exists.
+
+> delReservation :: Database -> [ String ] -> (String, Database)
+> delReservation db args
+>       | length args /= 2   = ("Invalid argument count", db)
+>       | notInt (args !! 1) = ("Could not parse integer", db)
+>       | otherwise          = ("Reservation deleted", delReservation' db rs')
+>   where i :: Integer
+>         i = read $ args !! 1
+>         rs = reservations db
+>         rs' = Re.reservationsById rs i
+
+> delReservation' :: Database -> [ Re.Reservation ] -> Database
+> delReservation' (Database ro re) rs = Database ro (re \\ rs)
 
 Adds a reservation (if possible).
 Args contains the train name, source and destination stations, and the number

@@ -18,7 +18,7 @@ A route consists of several stations.
 > data Route = Route { stations :: [ Station ]
 >                    , trains :: [ Train ]
 >                    }
->       deriving (Show, Read)
+>       deriving (Eq, Show, Read)
 
 Processes a list of routes and returns all hubs.
 Hubs are stations which are present in more then one route.
