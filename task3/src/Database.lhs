@@ -44,13 +44,15 @@ parameters.
 
 > addReservation :: Database -> [ String ] -> (String, Database)
 > addReservation db args
->       | count <= 0      = ("Count must be strictly positive", db)
->       | isNothing train = ("Train not found", db)
->       | isNothing src   = ("Source station not found", db)
->       | isNothing dst   = ("Destination station not found", db)
->       | isNothing route = ("Route not found", db)
->       | isNothing r     = ("Reservation is not possible", db)
->       | otherwise       = ("Reservation placed successfully", appendReservation db r')
+>       | length args /= 5   = ("Invalid argument count", db)
+>       | notInt (args !! 4) = ("Could not parse integer", db)
+>       | count <= 0         = ("Count must be strictly positive", db)
+>       | isNothing train    = ("Train not found", db)
+>       | isNothing src      = ("Source station not found", db)
+>       | isNothing dst      = ("Destination station not found", db)
+>       | isNothing route    = ("Route not found", db)
+>       | isNothing r        = ("Reservation is not possible", db)
+>       | otherwise          = ("Reservation placed successfully", appendReservation db r')
 >   where count    :: Integer
 >         count    = read $ args !! 4
 >         trains   = allTrains db
@@ -74,3 +76,6 @@ parameters.
 
 > allStations :: Database -> [ Station ]
 > allStations = nub . concat . (map stations) . routes
+
+> notInt :: String -> Bool
+> notInt = not . all (\c -> '0' <= c && c <= '9')
