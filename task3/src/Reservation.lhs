@@ -66,11 +66,28 @@ i: the starting seat number of this wagon
 
 > reserveSeats' :: [ Reservation ] -> [ T.Wagon ] -> Integer -> Integer -> [ Int ]
 > reserveSeats' rs (w:ws) n i
->       | hasSpace  = seatList
+>       | hasSpace  = map fromIntegral seatList
 >       | otherwise = reserveSeats' rs ws n (i + T.seats w)
 >   where allSeats      = [i .. i + T.seats w]
 >         reservedSeats = map toInteger $ concat $ map (\r -> seats r) rs
 >         availSeats    = allSeats \\ reservedSeats
->         hasSpace      = undefined
->         seatList      = undefined
+>         seatList      = contiguousRange availSeats (fromIntegral n)
+>         hasSpace      = not $ null seatList
 > reserveSeats' _ _ _ _ = []
+
+> contiguousRange :: [ Integer ] -> Int -> [ Integer ]
+> contiguousRange (x:xs) n = map toInteger $ reverse $ contiguousRange' [ x ] xs n
+
+The internal version takes a remaining range of numbers (x:xs),
+a count of elements n which need to be contiguous, and the current
+list of contiguous elements (y:ys) in reverse order.
+
+>   where contiguousRange' yss@(y:ys) (x:xs) n
+>           | length yss == n = yss
+>           | x == y + 1      = contiguousRange' (x:yss) xs n
+>           | otherwise       = contiguousRange' [ x ] xs n
+>         contiguousRange' yss [] n
+>           | length yss == n = yss
+>           | otherwise       = []
+
+> contiguousRange _ _ = []
