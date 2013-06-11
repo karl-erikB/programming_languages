@@ -1,5 +1,7 @@
 > module Reservation ( Reservation ( Reservation )
+>                    , printReservation
 >                    , reserveSeats
+>                    , reservationsByTrainAndSeat
 >                    ) where
 
 > import Data.List ( intersect
@@ -19,6 +21,19 @@
 >                                }
 >       deriving (Show, Read)
 
+> printReservation :: Reservation -> String
+> printReservation (Reservation i tr ro src dst se)
+>   = "Reservation id: " ++ show i ++
+>     " from: " ++ show src ++
+>     " to: " ++ show dst ++
+>     " seats: " ++ show se
+
+Retrieves all reservations applicable to the given seat in a given train.
+
+> reservationsByTrainAndSeat :: [ Reservation ] -> T.Train -> Int -> [ Reservation ]
+> reservationsByTrainAndSeat rs t s = filter (\r -> s `elem` (seats r)) byTrain'
+>   where byTrain' = byTrain rs t
+
 Retrieves all reservations applicable to the given route segment on the given train.
 Note that applicable in this case is defined as including the station.
 
@@ -27,14 +42,17 @@ Note that applicable in this case is defined as including the station.
 
 First, discard all reservations that aren't made for this train.
 
->   where byTrain    = filter (\r -> train r == t) rs
+>   where byTrain'   = byTrain rs t
 
 A segment includes all stations within [Src, Dst] in this route. Discard all remaining
 reservations that do not overlap with the current segment.
 
 >         ownSegment = segment src dst (stations r)
 >         bySegment  = filter (\(Reservation _ _ _ src' dst' _) -> not $ null $
->                           intersect ownSegment $ segment src' dst' (stations r)) byTrain
+>                           intersect ownSegment $ segment src' dst' (stations r)) byTrain'
+
+> byTrain :: [ Reservation ] -> T.Train -> [ Reservation ]
+> byTrain rs t = filter (\r -> train r == t) rs
 
 Given a list containing a followed by b, returns a list containing all elements
 [a, ..., b].

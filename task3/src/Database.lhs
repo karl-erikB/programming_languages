@@ -1,5 +1,6 @@
 > module Database ( Database ( Database )
 >                 , printDatabase
+>                 , printReservations
 >                 , addReservation
 >                 ) where
 
@@ -36,6 +37,26 @@
 > printTrains :: [ Train ] -> String
 > printTrains (t:ts) = show t ++ "\n" ++ printTrains ts
 > printTrains _      = ""
+
+Displays all reservation for the given seat in the given train.
+
+> printReservations :: Database -> [ String ] -> String
+> printReservations db args
+>       | length args /= 3   = "Invalid argument count"
+>       | notInt (args !! 2) = "Could not parse integer"
+>       | isNothing train    = "Train not found"
+>       | otherwise          = printReservations' rs
+>   where seat  :: Int
+>         seat   = read $ args !! 2
+>         trains = allTrains db
+>         train  = trainByName trains $ args !! 1
+>         train' = fromJust train
+>         allRs  = reservations db
+>         rs     = Re.reservationsByTrainAndSeat allRs train' seat
+
+> printReservations' :: [ Re.Reservation ] -> String
+> printReservations' (r:rs) = Re.printReservation r ++ "\n" ++ printReservations' rs
+> printReservations' _      = ""
 
 Adds a reservation (if possible).
 Args contains the train name, source and destination stations, and the number
