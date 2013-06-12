@@ -1,10 +1,12 @@
 A route consists of several stations.
 
 > module Route ( Route ( Route )
+>              , RouteSegment
 >              , stations
 >              , trains
 >              , hubs
 >              , routeByTrainAndWaypoints
+>              , routeSegments
 >              ) where
 
 > import Data.Maybe
@@ -20,6 +22,11 @@ A route consists of several stations.
 >                    }
 >       deriving (Eq, Show, Read)
 
+A route segment consists of the associated route, a source station
+and a destination station.
+
+> type RouteSegment = (Route, Station, Station)
+
 Processes a list of routes and returns all hubs.
 Hubs are stations which are present in more then one route.
 
@@ -33,3 +40,9 @@ Hubs are stations which are present in more then one route.
 >   where routeMatches r = t `elem` (trains r) &&
 >                          src `elem` (stations r) &&
 >                          dst `elem` (stations r) 
+
+Route segment determines all ways in which a destination can be reached from
+a source. It returns a list containing all possible routings.
+
+> routeSegments :: [ Route ] -> Station -> Station -> [ [ RouteSegment ] ]
+> routeSegments routes src dst = undefined

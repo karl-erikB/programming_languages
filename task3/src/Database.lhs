@@ -1,5 +1,6 @@
 > module Database ( Database ( Database )
 >                 , printDatabase
+>                 , printMultiSegment
 >                 , printReservations
 >                 , printSegment
 >                 , addReservation
@@ -127,6 +128,25 @@ over all stations within the segment for seats ranging from [i, j].
 >   where containsSegment (Route ss _) = let ss' = dropWhile (/= src) ss
 >                                        in src `elem` ss && dst `elem` ss'
 
+This function is somewhat similar to printSegment. However, it does not group
+its results by train and wagon, and it can handle a segment which includes
+more than one route.
+
+First, we need to determine in which ways we can actually reach dst from src.
+
+> printMultiSegment :: Database -> [ String ] -> String
+> printMultiSegment db args
+>       | length args /= 3 = "Invalid argument count"
+>       | isNothing src    = "Source station not found"
+>       | isNothing dst    = "Destination station not found"
+>       | otherwise        = show segments
+>   where stations = allStations db
+>         src      = stationByName stations $ args !! 1
+>         src'     = fromJust src
+>         dst      = stationByName stations $ args !! 2
+>         dst'     = fromJust dst
+>         segments = routeSegments (routes db) src' dst'
+>         rs       = reservations db
 
 Deletes a reservation if it exists.
 
