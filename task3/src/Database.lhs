@@ -139,7 +139,7 @@ First, we need to determine in which ways we can actually reach dst from src.
 >       | length args /= 3 = "Invalid argument count"
 >       | isNothing src    = "Source station not found"
 >       | isNothing dst    = "Destination station not found"
->       | otherwise        = printMultiSegment' segments
+>       | otherwise        = printMultiSegment' rs segments
 >   where stations = allStations db
 >         src      = stationByName stations $ args !! 1
 >         src'     = fromJust src
@@ -148,12 +148,17 @@ First, we need to determine in which ways we can actually reach dst from src.
 >         segments = routeSegments (routes db) src' dst'
 >         rs       = reservations db
 
-> printMultiSegment' (rs:rss) = printMultiSegment'' rs ++ "\n" ++ printMultiSegment' rss
-> printMultiSegment' _        = ""
+> printMultiSegment' :: [ Re.Reservation ] ->[[ RouteSegment ]] -> String
+> printMultiSegment' es (rs:rss) = printMultiSegment'' es rs ++ "\n" ++
+>                                  printMultiSegment' es rss
+> printMultiSegment' _ _         = ""
 
-> printMultiSegment'' ((_, Station src, Station dst):rss) = src ++ " - " ++ dst ++ ", " ++
->                                         printMultiSegment'' rss
-> printMultiSegment'' _                 = ""
+> printMultiSegment'' :: [ Re.Reservation ] -> [ RouteSegment ] -> String
+> printMultiSegment'' es ((route, Station src, Station dst):rss) =
+>               src ++ " - " ++ dst ++ ", " ++
+>               printMultiSegment'' es rss
+>   where undef = undefined
+> printMultiSegment'' _ _ = ""
 
 Deletes a reservation if it exists.
 
