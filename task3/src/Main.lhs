@@ -74,7 +74,7 @@ and return a string to print as well as the possibly modified database.
 >   "print"              -> (printDatabase db, db)
 >   "reserve"            -> addReservation db cmds
 >   "delreserve"         -> delReservation db cmds
->   "minfreemaxreserved" -> undefined -- TODO
+>   "minfreemaxreserved" -> (printSegment db cmds, db)
 >   "seatreservations"   -> (printReservations db cmds, db)
 >   "maxgroupsize"       -> undefined -- TODO
 >   otherwise            -> (usage, db)

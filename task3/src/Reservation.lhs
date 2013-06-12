@@ -1,8 +1,9 @@
 > module Reservation ( Reservation ( Reservation )
 >                    , printReservation
 >                    , reserveSeats
->                    , reservationsByTrainAndSeat
+>                    , reservationsByTrainAndSeats
 >                    , reservationsById
+>                    , reservationsForTrainAndSegment
 >                    ) where
 
 > import Data.List ( intersect
@@ -29,10 +30,10 @@
 >     " to: " ++ show dst ++
 >     " seats: " ++ show se
 
-Retrieves all reservations applicable to the given seat in a given train.
+Retrieves all reservations applicable to the given seats in a given train.
 
-> reservationsByTrainAndSeat :: [ Reservation ] -> T.Train -> Int -> [ Reservation ]
-> reservationsByTrainAndSeat rs t s = filter (\r -> s `elem` (seats r)) byTrain'
+> reservationsByTrainAndSeats :: [ Reservation ] -> T.Train -> [ Int ] -> [ Reservation ]
+> reservationsByTrainAndSeats rs t s = filter (\r -> not $ null $ s `intersect` (seats r)) byTrain'
 >   where byTrain' = byTrain rs t
 
 Retrieves all reservations by id.
