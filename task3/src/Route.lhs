@@ -36,13 +36,27 @@ Hubs are stations which are present in more then one route.
 >         hubs' _      = []
 
 > routeByTrainAndWaypoints :: [ Route ] -> Train -> Station -> Station -> Maybe Route
-> routeByTrainAndWaypoints rs t src dst = listToMaybe $ filter routeMatches rs
->   where routeMatches r = t `elem` (trains r) &&
->                          src `elem` (stations r) &&
->                          dst `elem` (stations r) 
+> routeByTrainAndWaypoints rs t src dst = listToMaybe $
+>                                         routesByTrain t $
+>                                         routesByStation src $
+>                                         routesByStation dst rs
+>   where routesByTrain t = filter (\(Route _ ts) -> t `elem` ts)
+
+> routesByStation :: Station -> [ Route ] -> [ Route ]
+> routesByStation s = filter (\(Route ss _) -> s `elem` ss)
 
 Route segment determines all ways in which a destination can be reached from
 a source. It returns a list containing all possible routings.
 
-> routeSegments :: [ Route ] -> Station -> Station -> [ [ RouteSegment ] ]
-> routeSegments routes src dst = undefined
+> routeSegments :: [ Route ] -> Station -> Station -> [[ RouteSegment ]]
+> routeSegments routes src dst = filter (not . null) $ map reverse $ concat [ routeSegments' routes [(r, src, src)] dst | r <- starts ]
+>   where starts = routesByStation src routes
+
+> routeSegments' :: [ Route ] -> [ RouteSegment ] -> Station -> [[ RouteSegment ]]
+> routeSegments' routes ss@((route, prev, _):_) dst
+>      | null remainingRoute = [[]]
+>      | src == dst          = [(route, src, src):ss]
+>      | otherwise           = concat [ routeSegments' routes ((r, src, src):ss) dst | r <- starts]
+>   where remainingRoute = reverse $ takeWhile (/= prev) $ reverse $ stations route
+>         src            = head remainingRoute
+>         starts         = routesByStation src routes

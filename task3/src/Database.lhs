@@ -139,7 +139,7 @@ First, we need to determine in which ways we can actually reach dst from src.
 >       | length args /= 3 = "Invalid argument count"
 >       | isNothing src    = "Source station not found"
 >       | isNothing dst    = "Destination station not found"
->       | otherwise        = show segments
+>       | otherwise        = printMultiSegment' segments
 >   where stations = allStations db
 >         src      = stationByName stations $ args !! 1
 >         src'     = fromJust src
@@ -147,6 +147,13 @@ First, we need to determine in which ways we can actually reach dst from src.
 >         dst'     = fromJust dst
 >         segments = routeSegments (routes db) src' dst'
 >         rs       = reservations db
+
+> printMultiSegment' (rs:rss) = printMultiSegment'' rs ++ "\n" ++ printMultiSegment' rss
+> printMultiSegment' _        = ""
+
+> printMultiSegment'' ((_, Station n, _):rss) = n ++ ", " ++
+>                                         printMultiSegment'' rss
+> printMultiSegment'' _                 = ""
 
 Deletes a reservation if it exists.
 
