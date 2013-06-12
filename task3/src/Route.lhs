@@ -49,7 +49,11 @@ Route segment determines all ways in which a destination can be reached from
 a source. It returns a list containing all possible routings.
 
 > routeSegments :: [ Route ] -> Station -> Station -> [[ RouteSegment ]]
-> routeSegments routes src dst = filter (not . null) $ map reverse $ concat [ routeSegments' routes [(r, src, src)] dst | r <- starts ]
+> routeSegments routes src dst =
+>           filter (not . null) $
+>           map (compactSegments . reverse) $
+>           concat [ routeSegments' routes [(r, src, src)] dst
+>                  | r <- starts ]
 >   where starts = routesByStation src routes
 
 > routeSegments' :: [ Route ] -> [ RouteSegment ] -> Station -> [[ RouteSegment ]]
@@ -60,3 +64,12 @@ a source. It returns a list containing all possible routings.
 >   where remainingRoute = reverse $ takeWhile (/= prev) $ reverse $ stations route
 >         src            = head remainingRoute
 >         starts         = routesByStation src routes
+
+Compacts consecutive RouteSegments of the same route into a single RouteSegment.
+
+> compactSegments :: [ RouteSegment ] -> [ RouteSegment ]
+> compactSegments ((r, src, dst):(r', src', dst'):cs)
+>           | r == r'   = compactSegments $ (r, src, dst'):cs
+>           | otherwise = (r, src, src') : compactSegments ((r', src', dst'):cs)
+> compactSegments (s:[]) = [s]
+> compactSegments _ = []

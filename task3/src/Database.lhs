@@ -151,7 +151,7 @@ First, we need to determine in which ways we can actually reach dst from src.
 > printMultiSegment' (rs:rss) = printMultiSegment'' rs ++ "\n" ++ printMultiSegment' rss
 > printMultiSegment' _        = ""
 
-> printMultiSegment'' ((_, Station n, _):rss) = n ++ ", " ++
+> printMultiSegment'' ((_, Station src, Station dst):rss) = src ++ " - " ++ dst ++ ", " ++
 >                                         printMultiSegment'' rss
 > printMultiSegment'' _                 = ""
 
