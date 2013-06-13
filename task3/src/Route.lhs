@@ -7,6 +7,7 @@ A route consists of several stations.
 >              , hubs
 >              , routeByTrainAndWaypoints
 >              , routeSegments
+>              , routeSegment
 >              ) where
 
 > import Data.Maybe
@@ -26,6 +27,10 @@ A route segment consists of the associated route, a source station
 and a destination station.
 
 > type RouteSegment = (Route, Station, Station)
+
+> routeSegment :: Route -> Station -> Station -> [ Station ]
+> routeSegment r src dst = reverse $ dropWhile (/= dst) $
+>                          reverse $ dropWhile (/= src) $ stations r
 
 Processes a list of routes and returns all hubs.
 Hubs are stations which are present in more then one route.

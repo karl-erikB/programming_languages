@@ -90,7 +90,7 @@ stations within this segment.
 >       | length segment < 2 = "Segment must include > 1 stations"
 >       | otherwise          = printRouteStats' res (r, t) segment 0 ++ "\n" ++
 >                              printRouteStats res (Route st ts) src dst
->   where segment = reverse $ dropWhile (/= dst) $ reverse $ dropWhile (/= src) st
+>   where segment = routeSegment r src dst
 > printRouteStats _ _ _ _ = ""
 
 Finally we're down to the wagon level. Collect stats for each wagon
