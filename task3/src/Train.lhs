@@ -5,6 +5,7 @@
 >              , trainByName
 >              , trainCapacity
 >              , wagons
+>              , wagonSeat
 >              ) where
 
 > import Data.Maybe
@@ -24,3 +25,9 @@
 
 > trainCapacity :: Train -> Integer
 > trainCapacity t = sum [ seats w | w <- wagons t ]
+
+> wagonSeat :: Train -> Wagon -> Int
+> wagonSeat (Train _ ws _) w = wagonSeat' ws w 0
+>   where wagonSeat' :: [ Wagon ] -> Wagon -> Int -> Int
+>         wagonSeat' (w:ws) w' i = if w == w' then i else wagonSeat' ws w' (i + fromInteger (seats w))
+>         wagonSeat' _ _ _       = -1
