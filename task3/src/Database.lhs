@@ -88,7 +88,7 @@ stations within this segment.
 
 > printRouteStats res r@(Route st (t:ts)) src dst
 >       | length segment < 2 = "Segment must include > 1 stations"
->       | otherwise          = printRouteStats' res (r, t) segment 0 ++ "\n" ++
+>       | otherwise          = printRouteStats' res (r, t) segment ++ "\n" ++
 >                              printRouteStats res (Route st ts) src dst
 >   where segment = routeSegment r src dst
 > printRouteStats _ _ _ _ = ""
@@ -96,32 +96,33 @@ stations within this segment.
 Finally we're down to the wagon level. Collect stats for each wagon
 and print them.
 
-> printRouteStats' :: [ Re.Reservation ] -> (Route, Train) -> [ Station ] -> Int -> String
-> printRouteStats' res (ro, t@(Train nm (w:ws) mfs)) seg i =
+> printRouteStats' :: [ Re.Reservation ] -> (Route, Train) -> [ Station ] -> String
+> printRouteStats' res (ro, t@(Train nm (w:ws) mfs)) seg =
 >           nm ++ ": min free " ++ show min' ++
 >           ", max reserved " ++ show max' ++
 >           " at " ++ show src' ++ " - " ++ show dst' ++ "\n" ++
->           printRouteStats' res (ro, Train nm ws mfs) seg j
->   where j                  = i + (fromInteger $ seats w)
->         (src', dst', max') = segmentExtrema res (ro, t) seg (i, j - 1)
+>           printRouteStats' res (ro, Train nm ws mfs) seg
+>   where (src', dst', max') = segmentExtrema res (ro, t, w) seg
 >         min'               = (fromInteger $ seats w) - max'
-> printRouteStats' _ _ _ _ = ""
+> printRouteStats' _ _ _ = ""
 
 Looks up the extrema (minimum free seats, maximum reserved seats)
 over all stations within the segment for seats ranging from [i, j].
 
-> segmentExtrema :: [ Re.Reservation ] -> (Route, Train) -> [ Station ]
->                -> (Int, Int) -> (Station, Station, Int)
-> segmentExtrema res (ro, t) (s1:s2:ss) (i, j)
+> segmentExtrema :: [ Re.Reservation ] -> (Route, Train, Wagon) -> [ Station ]
+>                -> (Station, Station, Int)
+> segmentExtrema res (ro, t, w) (s1:s2:ss)
 >       | taken' > taken = (s1', s2', taken')
 >       | otherwise      = (s1, s2, taken)
->   where res'   = Re.reservationsByTrainAndSeats res t [i .. j - 1]
+>   where i      = wagonSeat t w
+>         j      = i + (fromInteger $ seats w)
+>         res'   = Re.reservationsByTrainAndSeats res t [i .. j - 1]
 >         res''  = Re.reservationsForTrainAndSegment res' (ro, t, s1, s2)
 >         counts = map (\(Re.Reservation _ _ _ _ _ ss) -> length ss) res''
 >         taken  = sum counts
->         (s1', s2', taken') = segmentExtrema res (ro, t) (s2:ss) (i, j)
+>         (s1', s2', taken') = segmentExtrema res (ro, t, w) (s2:ss)
 
-> segmentExtrema _ _ _ _ = (Station "Null", Station "Null", 0)
+> segmentExtrema _ _ _ = (Station "Null", Station "Null", 0)
 
 > routesWithSegment :: Database -> Station -> Station -> [ Route ]
 > routesWithSegment db src dst = filter containsSegment $ routes db
