@@ -156,20 +156,38 @@ First, we need to determine in which ways we can actually reach dst from src.
 
 > printMultiSegment'' :: [ Re.Reservation ] -> [ RouteSegment ] -> String
 > printMultiSegment'' es ((route, Station src, Station dst):rss) =
->               src ++ " - " ++ dst ++ ": " ++ show min' ++ " min free, " ++
->               show max' ++ " max group size on train '" ++ nm ++ "'\n" ++
+>               src ++ " - " ++ dst ++ ": " ++ show min' ++ " min free on train '" ++
+>               nmin ++ "', " ++
+>               show max' ++ " max group size on train '" ++ nmax ++ "'\n" ++
 >               printMultiSegment'' es rss
->   where (Train nm _ _, min', max') = aggregateSegment es route (Station src) (Station dst)
+>   where (Train nmin _ _, min', Train nmax _ _, max') =
+>               aggregateSegment es route (Station src) (Station dst)
 > printMultiSegment'' _ _ = ""
 
 > aggregateSegment :: [ Re.Reservation ] -> Route -> Station -> Station ->
->                     (Train, Int, Int)
-> aggregateSegment res ro src dst = undefined
+>                     (Train, Int, Train, Int)
+> aggregateSegment res ro src dst = (mint, min', maxt, max')
+>   where byTrain = [ aggregateTrain res ro src dst t | t <- trains ro ]
+>         minFree :: (Train, Int, Int) -> (Train, Int) -> (Train, Int)
+>         minFree (t, m, _) (t', m')
+>               | m < m'    = (t, m)
+>               | otherwise = (t', m')
+>         maxGroup :: (Train, Int, Int) -> (Train, Int) -> (Train, Int)
+>         maxGroup (t, _, m) (t', m')
+>               | m > m'    = (t, m)
+>               | otherwise = (t', m')
+>         (mint, min') = foldr minFree (Train "Null" [] 0, maxBound::Int) byTrain
+>         (maxt, max') = foldr maxGroup (Train "Null" [] 0, minBound::Int) byTrain
+
+> aggregateTrain :: [ Re.Reservation ] -> Route -> Station -> Station -> Train ->
+>                   (Train, Int, Int)
+> aggregateTrain res ro src dst t@(Train _ ws _) =
+>           (t, min availSeats seatLimit, maximum $ map mins byWagon)
 >   where segment = routeSegment ro src dst
->         seats t = (0, fromInteger $ trainCapacity t - 1)
->         byTrain = [ (t, segmentExtrema res (ro, t) segment (seats t))
->                   | t <- trains ro
->                   ]
+>         byWagon = [ (w, segmentExtrema res (ro, t, w) segment) | w <- ws ]
+>         mins (w, (_, _, m)) = (fromInteger $ seats w) - m
+>         availSeats = sum $ map mins byWagon
+>         seatLimit  = fromInteger (trainCapacity t - minimumFreeSeats t)
 
 Deletes a reservation if it exists.
 
