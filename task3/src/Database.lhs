@@ -155,10 +155,20 @@ First, we need to determine in which ways we can actually reach dst from src.
 
 > printMultiSegment'' :: [ Re.Reservation ] -> [ RouteSegment ] -> String
 > printMultiSegment'' es ((route, Station src, Station dst):rss) =
->               src ++ " - " ++ dst ++ ", " ++
+>               src ++ " - " ++ dst ++ ": " ++ show min' ++ " min free, " ++
+>               show max' ++ " max group size on train '" ++ nm ++ "'\n" ++
 >               printMultiSegment'' es rss
->   where undef = undefined
+>   where (Train nm _ _, min', max') = aggregateSegment es route (Station src) (Station dst)
 > printMultiSegment'' _ _ = ""
+
+> aggregateSegment :: [ Re.Reservation ] -> Route -> Station -> Station ->
+>                     (Train, Int, Int)
+> aggregateSegment res ro src dst = undefined
+>   where segment = routeSegment ro src dst
+>         seats t = (0, fromInteger $ trainCapacity t - 1)
+>         byTrain = [ (t, segmentExtrema res (ro, t) segment (seats t))
+>                   | t <- trains ro
+>                   ]
 
 Deletes a reservation if it exists.
 
