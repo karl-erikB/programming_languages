@@ -78,7 +78,7 @@ whether enough space is left to complete the reservation.
 >   where newId                = 1 + maximum (0:[ resid res  | res <- rs ])
 >         applicableRs         = reservationsForTrainAndSegment rs (r, t, src, dst)
 >         filledSeats          = fromIntegral $ sum [ length $ seats res | res <- applicableRs ]
->         minFreeSeatsExceeded = ((T.trainCapacity t) - filledSeats) < (T.minimumFreeSeats t)
+>         minFreeSeatsExceeded = ((T.trainCapacity t) - filledSeats - n) < (T.minimumFreeSeats t)
 >         bookedSeats          = reserveSeats' applicableRs (T.wagons t) n 0
 
 We're almost done with all checks. We still need to find some place in the
@@ -93,7 +93,7 @@ i: the starting seat number of this wagon
 > reserveSeats' rs (w:ws) n i
 >       | hasSpace  = map fromIntegral seatList
 >       | otherwise = reserveSeats' rs ws n (i + T.seats w)
->   where allSeats      = [i .. i + T.seats w]
+>   where allSeats      = [i .. i + T.seats w - 1]
 >         reservedSeats = map toInteger $ concat $ map (\r -> seats r) rs
 >         availSeats    = allSeats \\ reservedSeats
 >         seatList      = contiguousRange availSeats (fromIntegral n)
