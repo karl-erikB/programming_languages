@@ -16,9 +16,12 @@ This function prettifies a single value.
 
 > prettyValue :: V.Value -> String
 
-Integers are output verbatim.
+Positive integers are output verbatim; negative integers are sign-flipped and
+followed by the negation operator.
 
-> prettyValue (V.CInteger i) = (show i)
+> prettyValue (V.CInteger i)
+>   | i < 0      = (show (-i)) ++ "~"
+>   | otherwise  = (show i)
 
 Parenthesized expressions are put back in their parentheses and otherwise
 produced verbatim.
