@@ -98,12 +98,12 @@ top.
 
 > pickE :: (Integral n) => n -> Stack a -> Either String (Stack a)
 > pickE i (Stack xs)
->   | i < 0     = Left "Negative stack index."
->   | i >= len  = Left "Index greater than stack depth."
->   | otherwise = Right (Stack (q:(ls ++ rs)))
+>   | i < 0      = Left "Negative stack index."
+>   | i >= len   = Left "Index greater than stack depth."
+>   | otherwise  = Right (Stack (q:(ls ++ rs)))
 >   where
->     len      = genericLength xs
->     (ls, rs) = genericSplitAt i xs
->     q:_      = rs
+>     len       = genericLength xs
+>     (ls, rs)  = genericSplitAt i xs
+>     q:_       = rs
 
 And that's it for the stack!
