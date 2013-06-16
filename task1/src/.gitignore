@@ -6,3 +6,7 @@
 
 # LaTeX output
 *.pdf
+
+# Haskell build artifacts
+*.o
+*.hi
