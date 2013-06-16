@@ -10,7 +10,10 @@
 %format //  = "\intdiv "
 %format ~:  = "\testlabel "
 %format ~=? = "\testequal "
+%format qualified  = "\mathbf{qualified}"
+%format as  = "\mathbf{as}"
 
+\usepackage{booktabs}
 \usepackage[sc]{mathpazo}
 \usepackage{tgpagella}
 \usepackage[T1]{fontenc}
