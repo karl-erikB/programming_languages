@@ -62,19 +62,30 @@ then enters the processing loop.
 >   let showStack  = cmdoptShowStack opts
 >   let display    = Di.emptyDisplay
 >   let stack      = (Sk.Stack [])
->   if    isJust $ cmdoptBootstrapFile opts
+>   if    isJust $ cmdoptOpSysFile opts
 >   then  do
->     let bfn      = fromJust $ cmdoptBootstrapFile opts
->     bs <- performBootstrap evalState showStack bfn (Se.State display stack)
->     if isRight bs
+>     let osfn     = fromJust $ cmdoptOpSysFile opts
+>     (oss, pfx, sfx) <- loadOpSys evalState showStack osfn (Se.State display stack)
+>     if isRight oss
 >     then do
->       processingLoop evalState showStack stdin (fromRight bs)
+>       processingLoop evalState showStack stdin pfx sfx (fromRight oss)
 >       return ()
 >     else do
 >       return ()
->   else  do
->     processingLoop evalState showStack stdin (Se.State display stack)
->     return ()
+>   else
+>     if    isJust $ cmdoptBootstrapFile opts
+>     then  do
+>       let bfn    = fromJust $ cmdoptBootstrapFile opts
+>       bs <- performBootstrap evalState showStack bfn (Se.State display stack)
+>       if isRight bs
+>       then do
+>         processingLoop evalState showStack stdin "" "" (fromRight bs)
+>         return ()
+>       else do
+>         return ()
+>     else  do
+>       processingLoop evalState showStack stdin "" "" (Se.State display stack)
+>       return ()
 
 The command-line arguments are parsed using Haskell's \textit{GetOpt} support.
 
@@ -82,12 +93,14 @@ The command-line arguments are parsed using Haskell's \textit{GetOpt} support.
 >   { cmdoptStepByStep     :: Bool
 >   , cmdoptShowStack      :: Bool
 >   , cmdoptBootstrapFile  :: Maybe String
+>   , cmdoptOpSysFile      :: Maybe String
 >   } deriving (Show, Eq)
 >
 > defaultOptions = CmdlineOptions
 >   { cmdoptStepByStep     = False
 >   , cmdoptShowStack      = False
 >   , cmdoptBootstrapFile  = Nothing
+>   , cmdoptOpSysFile      = Nothing
 >   }
 >
 > options :: [OptDescr (CmdlineOptions -> CmdlineOptions)]
@@ -101,6 +114,9 @@ The command-line arguments are parsed using Haskell's \textit{GetOpt} support.
 >   , Option  ['b'] ["bootstrap"]
 >       (ReqArg  (\f os  -> os { cmdoptBootstrapFile  = Just f }) "FILE")
 >       "file to execute before loading UI or executing input"
+>   , Option  ['O'] ["operating-system"]
+>       (ReqArg  (\f os  -> os { cmdoptOpSysFile      = Just f }) "FILE")
+>       "operating system seeding file"
 >   ]
 
 The processing loop reads reads a line from standard input, parses it, pushes
@@ -111,13 +127,13 @@ each evaluation; the \verb|--show-stack| option will pretty-print the stack
 along with the display after each line of input has been processed.
 
 > processingLoop ::  (Se.State -> IO (Either String Se.State))
->                    -> Bool -> Handle -> Se.State
+>                    -> Bool -> Handle -> String -> String -> Se.State
 >                    -> IO (Either () Se.State)
-> processingLoop evalState showStack inhdl st8 = do
->   res <- processOne evalState showStack inhdl st8
+> processingLoop evalState showStack inhdl commonPre commonSuf st8 = do
+>   res <- processOne evalState showStack inhdl commonPre commonSuf st8
 >   if RS.isRepeat res
 >   then
->     processingLoop evalState showStack inhdl $ RS.fromRepeat res
+>     processingLoop evalState showStack inhdl commonPre commonSuf $ RS.fromRepeat res
 >   else if RS.isStop res
 >   then
 >     return $ Right $ RS.fromStop res
@@ -125,9 +141,9 @@ along with the display after each line of input has been processed.
 >     return $ Left ()
 >
 > processOne ::  (Se.State -> IO (Either String Se.State))
->                -> Bool -> Handle -> Se.State
+>                -> Bool -> Handle -> String -> String -> Se.State
 >                -> IO (RS.RepeatState Se.State Se.State ())
-> processOne evalState showStack inhdl st8 = do
+> processOne evalState showStack inhdl commonPre commonSuf st8 = do
 >   putStrLn $ Di.prettyFormatBox $ Se.display st8
 >   if showStack then do
 >     putStrLn $ Pr.prettyStack $ Se.stack st8
@@ -145,7 +161,7 @@ along with the display after each line of input has been processed.
 >     return $ RS.Stop st8
 >   else do
 >     ln <- hGetLine inhdl
->     let pres = Pa.parse ln
+>     let pres = Pa.parse (commonPre ++ ln ++ commonSuf)
 >     if isLeft pres
 >     then do
 >       hPutStrLn stderr $ "error parsing input: " ++ fromLeft pres
@@ -162,14 +178,36 @@ along with the display after each line of input has been processed.
 >       else do
 >         return $ RS.Repeat $ fromRight evalres
 
-Bootstrapping opens the file and executes the commands within.
+Bootstrapping (\verb|--bootstrap|) opens the file and executes the commands
+within before executing the rest.
 
 > performBootstrap ::  (Se.State -> IO (Either String Se.State))
 >                      -> Bool -> String -> Se.State
 >                      -> IO (Either () Se.State)
 > performBootstrap evalState showStack bsfn st8 = do
 >   withFile bsfn ReadMode (\bsh -> do
->       processingLoop evalState showStack bsh st8
+>       processingLoop evalState showStack bsh "" "" st8
+>     )
+
+Operating system seeds (\verb|--operating-system|) are like bootstrap files, but
+consist of three lines: the first contains commands to be executed on startup,
+the next contains commands that will be prepended to each line (before parsing
+and executing), and the last contains commands that will be appended to each
+line (before parsing and executing).
+
+> loadOpSys ::  (Se.State -> IO (Either String Se.State))
+>               -> Bool -> String -> Se.State
+>               -> IO (Either () Se.State, String, String)
+> loadOpSys evalState showStack osfn st8 = do
+>   withFile osfn ReadMode (\osh -> do
+>       inist8   <- processOne evalState showStack osh "" "" st8
+>       if    RS.isRepeat $ inist8
+>       then  do
+>         pfxln  <- hGetLine osh
+>         sfxln  <- hGetLine osh
+>         return (Right $ RS.fromRepeat inist8, pfxln, sfxln)
+>       else do
+>         return (Left (), "", "")
 >     )
 
 \textit{evalStateSBS} invokes \textit{evaluateStepping} to perform the
