@@ -1,0 +1,51 @@
+# Initialization #
+
+Top of stack always contains the depth of stack (apart from this element). Initialize with 0.
+
+# Prefix and suffix #
+
+## Stack height management ##
+
+Prefix (SHMPRE): increase stack height
+
+    1+
+
+Suffix (SHMSUF): Pull stack height up
+
+    3!4#
+
+## Stringification ##
+
+Prefix (STRPRE): open parenthesized expression
+
+    (
+
+Suffix (STRSUF): close prenthesized expression
+
+    )
+
+## Screen clearing ##
+
+Prefix: nothing
+
+Suffix (CLSSUF): clear-screen procedure
+
+    0 (256<) (32 3!$1+) WHILE
+
+Raw suffix:
+
+    0 (256<) (32 3!$1+) ((5!5!@ (5!4!@6#5!6#5!6#5!6#2!@) (2#2#2#2#) 4!5#2+#@) 2!@)@
+
+# Final operating system definition #
+
+## Assembling ##
+
+    0
+    SHMPRE STRPRE
+    STRSUF SHMSUF CLSSUF
+
+## Raw ##
+
+    0
+    1+ (
+    ) 3!4# 0 (256<) (32 3!$1+) ((5!5!@ (5!4!@6#5!6#5!6#5!6#2!@) (2#2#2#2#) 4!5#2+#@) 2!@)@
